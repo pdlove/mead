@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor - Ansible Playbook</title>
+    <style>
+        #container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+        .breakpoint {
+            background-color: rgba(255, 0, 0, 0.3) !important;
+        }
+        .breakpointGlyph {
+            background-color: red;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+            margin-left: 4px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.40.0/min/vs/loader.js"></script>
+</head>
+<body>
+
+<h2>Monaco Editor with Ansible Playbook Support</h2>
+<div id="container"></div>
+
+<script>
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.40.0/min/vs' }});
+
+    require(["vs/editor/editor.main"], function () {
+        // Register YAML language support
+        monaco.languages.register({ id: "yaml" });
+
+        // Create Monaco Editor instance
+        const editor = monaco.editor.create(document.getElementById("container"), {
+            value: `---
+- name: Example Playbook
+  hosts: all
+  tasks:
+    - name: Ping all hosts
+      ansible.builtin.ping:`,
+            language: "yaml",
+            theme: "vs-dark",
+            glyphMargin: true, // Enable margin for breakpoints
+            minimap: { enabled: false },
+        });
+
+        // --- Ansible Auto-Completion ---
+        monaco.languages.registerCompletionItemProvider("yaml", {
+            provideCompletionItems: function (model, position) {
+                return {
+                    suggestions: [
+                        {
+                            label: "ansible.builtin.ping",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "ansible.builtin.ping:",
+                            documentation: "Ping a remote host using Ansible.",
+                        },
+                        {
+                            label: "ansible.builtin.command",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "ansible.builtin.command: ${1:command}",
+                            documentation: "Run a shell command on the remote system.",
+                        },
+                        {
+                            label: "hosts",
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: "hosts: ${1:all}",
+                            documentation: "Define target hosts for Ansible playbooks.",
+                        }
+                    ]
+                };
+            }
+        });
+
+        // --- Syntax Highlighting for Ansible Keywords ---
+        monaco.languages.setMonarchTokensProvider("yaml", {
+            tokenizer: {
+                root: [
+                    [/\b(name|hosts|tasks|vars|roles|gather_facts|become)\b/, "keyword"],
+                    [/\b(ansible\.[a-zA-Z0-9_]+)\b/, "type"],
+                    [/(:)/, "delimiter"],
+                    [/(\s*-)\s*/, "operator"],
+                ]
+            }
+        });
+
+        // --- Breakpoint-Like Functionality ---
+        let breakpoints = new Set();
+        breakpoints.add(4);
+        editor.onMouseDown((e) => {
+            if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+                const lineNumber = e.target.position.lineNumber;
+                
+                if (breakpoints.has(lineNumber)) {
+                    breakpoints.delete(lineNumber);
+                } else {
+                    breakpoints.add(lineNumber);
+                }
+
+                updateBreakpoints();
+            }
+        });
+
+        function updateBreakpoints() {
+            let decorations = [];
+            breakpoints.forEach(line => {
+                decorations.push({
+                    range: new monaco.Range(line, 1, line, 1),
+                    options: {
+                        isWholeLine: true,
+                        className: "breakpoint",
+                        glyphMarginClassName: "breakpointGlyph",
+                    }
+                });
+            });
+            editor.deltaDecorations([], decorations);
+        }
+    });
+</script>
+
+</body>
+</html>
