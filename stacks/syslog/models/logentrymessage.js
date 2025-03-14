@@ -1,0 +1,26 @@
+const { HotspringModel, DataTypes } = require('hotspring-framework');
+const zlib = require('zlib');
+
+class LogEntryMessage extends HotspringModel {
+  static modelName = 'logentrymessage';
+  static filterRequired = true;
+  static autoRoute = true; // Creates CRUD Routes and CRUD Views automatically.
+  static defaultWriteAccess = 'admin'; //admin, user, public
+  static defaultReadAccess = 'admin'; //admin, user, public
+
+  static sequelizeDefinition = {
+    batchID: { type: DataTypes.INTEGER, allowNull: false },
+    lineID: { type: DataTypes.INTEGER, allowNull: false },
+    // The message is stored as a compressed blob.
+    message: { type: DataTypes.BLOB, allowNull: false, get(rawValue) {
+      if (rawValue == undefined) valu = this.getDataValue('message');
+      return rawValue ? zlib.inflateSync(Buffer.from(rawValue)).toString('utf-8') : null;
+    }, set(value) {
+      this.setDataValue('message', zlib.deflateSync(Buffer.from(value, 'utf-8')));
+    }},
+  };
+
+  static primaryKey = ['batchID', 'lineID'];
+}
+
+module.exports = LogEntryMessage;

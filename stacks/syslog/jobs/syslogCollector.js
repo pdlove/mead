@@ -72,6 +72,7 @@ class SyslogCollector extends HotspringJob {
 
         //Upload the information to the current batch. This does it by host so that it can also process the data if possible.
         let hosts = {};
+        console.log("Flush Start");
         //Loop through the hosts listed in the processing Queue.
         for (const host in processingQueue) {
             //If the host is not in the host list, add it.
@@ -80,10 +81,12 @@ class SyslogCollector extends HotspringJob {
             //If the host is not in the model, create it with the Generic Processor.
 
             //Loop through the messages for the host.
+            let entries = [];
+            let messages = [];
+            let data = [];
             for (const message of processingQueue[host]) {
                 //For each message, process it with the processor if one is defined and exists on this agent.
-                const model = await global.hotspring.stacks['syslog'].models['LogEntry'];
-                const newEntry = await model.addObject({
+                entries.push({
                     batchID: this.currentBatchID,
                     lineID: this.currentLine++,
                     sourceIP: message.sourceIP,
@@ -93,7 +96,7 @@ class SyslogCollector extends HotspringJob {
                     message: message.msg,
                     state: 2 //Unprocessed
                 });
-        
+                
                 //If successfully processed, set the logEntry to processed.
                 //This will need modification when we implement distributed agents.
                 //console.log(message);
@@ -101,8 +104,16 @@ class SyslogCollector extends HotspringJob {
                 //Process the message with the processor.
                 //Flag the message as processed.
             }
+            //Bulk Upload the Syslog Entries
+            const logEntryModel = await global.hotspring.stacks['syslog'].models['LogEntry'];                
+            await logEntryModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'lineID', 'sourceIP', 'facility', 'severity', 'time', 'state'] });
+
+            const logEntryMessageModel = await global.hotspring.stacks['syslog'].models['LogEntryMessage'];                
+            await logEntryMessageModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'lineID', 'message'] });
+
             console.log('Host:', host, 'Messages:', processingQueue[host].length, ' added to Database.');
         }
+        console.log("Flush Stop");
     }
 
     async nextBatch() {
