@@ -1,0 +1,9 @@
+{
+    "packageName": "log-dashboard",
+    "requiredPackages": ["system.uiTable"],
+    "cssFileList": [],
+    "templateFileList": {},
+    "htmlFileList": ["log-dashboard.html"],
+    "jsFileList": ["log-dashboard.js"],
+    "startupClass": "LogDashboard"
+}
