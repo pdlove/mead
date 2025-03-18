@@ -1,5 +1,6 @@
 #Configuration file
 config.json
+newdb.sqlite
 
 # Logs
 logs
