@@ -88,6 +88,7 @@ class SyslogCollector extends HotspringJob {
                 //For each message, process it with the processor if one is defined and exists on this agent.
                 entries.push({
                     batchID: this.currentBatchID,
+                    logEntryID: null,
                     lineID: this.currentLine++,
                     sourceIP: message.sourceIP,
                     facility: message.facility,
@@ -105,11 +106,16 @@ class SyslogCollector extends HotspringJob {
                 //Flag the message as processed.
             }
             //Bulk Upload the Syslog Entries
-            const logEntryModel = await global.hotspring.stacks['syslog'].models['LogEntry'];                
-            await logEntryModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'lineID', 'sourceIP', 'facility', 'severity', 'time', 'state'] });
+            const logEntryModel = await global.hotspring.stacks['syslog'].models['logentry'];                
+            const logEntries = await logEntryModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'sourceIP', 'facility', 'severity', 'time', 'state'], returning: true });
+            for (let i = 0;i<entries.length;i++) {
+                entries[i].logEntryID=logEntries[i].dataValues.logEntryID;
+            }
+            
 
-            const logEntryMessageModel = await global.hotspring.stacks['syslog'].models['LogEntryMessage'];                
-            await logEntryMessageModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'lineID', 'message'] });
+
+            const logEntryMessageModel = await global.hotspring.stacks['syslog'].models['logentrymessage'];                
+            await logEntryMessageModel.sequelizeObject.bulkCreate(entries, { fields: ['logEntryID', 'message'] });
 
             console.log('Host:', host, 'Messages:', processingQueue[host].length, ' added to Database.');
         }
@@ -138,7 +144,7 @@ class SyslogCollector extends HotspringJob {
 
     async updateBatchState(batchID, state, updates) {
         // Update the batch state in the database
-        const model = await global.hotspring.stacks['syslog'].models['LogBatch'];
+        const model = await global.hotspring.stacks['syslog'].models['logbatch'];
         await model.updateObject(batchID, {
             state: state,
             ...updates
@@ -147,7 +153,7 @@ class SyslogCollector extends HotspringJob {
 
     async createLogBatch() {
         // Create a new log batch record in the database
-        const model = await global.hotspring.stacks['syslog'].models['LogBatch'];
+        const model = await global.hotspring.stacks['syslog'].models['logbatch'];
         const newBatch = await model.addObject({
             state: 1, // Active
             collectorID: 0, // Will be updated later to use our agent id

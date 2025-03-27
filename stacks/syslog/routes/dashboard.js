@@ -1,4 +1,5 @@
-const { HotspringRoute, Op, Sequelize } = require("hotspring-framework");
+const { HotspringRoute } = require("hotspring-framework");
+const { Sequelize, Op } = require("sequelize");
 
 class syslogDashboardRoutes extends HotspringRoute {
     routeName = 'syslogDashboard';
@@ -13,7 +14,7 @@ class syslogDashboardRoutes extends HotspringRoute {
     async dashboardSummary(req, res) {
         try {
             //Get the Model
-            const logEntryModel = global.hotspring.models['syslog.LogEntry'];
+            const logEntryModel = global.hotspring.models['syslog.logentry'];
             const toDate = req.query.to ? new Date(req.query.to) : new Date();
             const fromDate = req.query.from ? new Date(req.query.from) : new Date(toDate); // Clone toDate
             if (!req.query.from) fromDate.setDate(toDate.getDate() - 1); // Default to 1 day
@@ -21,11 +22,11 @@ class syslogDashboardRoutes extends HotspringRoute {
             const summary = await logEntryModel.sequelizeObject.findAll({
                 attributes: [
                     "sourceIP",
-                    [Sequelize.fn("COUNT", Sequelize.col("lineID")), "total_entries"],
+                    [Sequelize.fn("COUNT", Sequelize.col("logEntryID")), "total_entries"],
                     [Sequelize.fn("MAX", Sequelize.col("time")), "latest_log_time"],
-                    ...Array.from({ length: 9 }, (_, i) => [
-                        Sequelize.fn("COUNT", Sequelize.literal(`CASE WHEN severity = ${i + 1} THEN 1 END`)),
-                        `severity_${i + 1}_count`
+                    ...Array.from({ length: 8 }, (_, i) => [
+                        Sequelize.fn("COUNT", Sequelize.literal(`CASE WHEN severity = ${i} THEN 1 END`)),
+                        `severity_${i}_count`
                     ])
                 ],
                 where: {

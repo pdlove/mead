@@ -19,12 +19,11 @@ class LogBatch extends HotspringModel {
     processedLines: { type: DataTypes.BIGINT, defaultValue: 0 },    
     state: {type: DataTypes.SMALLINT, defaultValue: 0, allowNull: false, enumValues: {0: 'Created', 1: 'Active', 2: 'UnProcessed', 11:'Processed', 12:'Ignored', 13:'Error'}, },
   };
-  static sequelizeConnections = [
-    { connection: "1M", parentType: "inventory.networkdevice", parentKey: "deviceID", childType: "syslog.LogBatch", childKey: "sourceDeviceID" },
-    { connection: "1M", parentType: "inventory.networkdevice", parentKey: "deviceID", childType: "syslog.LogBatch", childKey: "collectorID" },
-    { connection: "1M", parentType: "inventory.networkdevice", parentKey: "deviceID", childType: "syslog.LogBatch", childKey: "processingByID" },
-    // { connection: "MM", type1: "system.group", Key1: "groupID", type2: "system.menu", Key2: "menuID", midType: "system.group_menu" }
+
+  static sequelizeConnections = [    
+    { connectionType: "1M", parentmodel: "syslog.logbatch", childParentKey: 'batchID', childmodel: "syslog.logentry", required: true }
   ]
+
 }
 
 module.exports = LogBatch;

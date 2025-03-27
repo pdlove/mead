@@ -9,8 +9,7 @@ class LogEntryMessage extends HotspringModel {
   static defaultReadAccess = 'admin'; //admin, user, public
 
   static sequelizeDefinition = {
-    batchID: { type: DataTypes.INTEGER, allowNull: false },
-    lineID: { type: DataTypes.INTEGER, allowNull: false },
+    logEntryID:  { type: DataTypes.BIGINT, allowNull: false, primaryKey: true },
     // The message is stored as a compressed blob.
     message: { type: DataTypes.BLOB, allowNull: false, get(rawValue) {
       if (rawValue == undefined) valu = this.getDataValue('message');
@@ -21,6 +20,10 @@ class LogEntryMessage extends HotspringModel {
   };
 
   static primaryKey = ['batchID', 'lineID'];
+
+  // static sequelizeConnections = [
+  //   { parentType: "syslog.logentry", parentKey: ['batchID', 'lineID'], childType: "syslog.Logentrymessage", childKey: ['batchID', 'lineID'] },
+  // ]
 }
 
 module.exports = LogEntryMessage;

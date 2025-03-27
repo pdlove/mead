@@ -1,0 +1,9 @@
+{
+    "packageName": "log-display",
+    "requiredPackages": ["system.uiTable"],
+    "cssFileList": [],
+    "templateFileList": {},
+    "htmlFileList": ["log-display.html"],
+    "jsFileList": ["log-display.js"],
+    "startupClass": "LogDisplay"
+}
