@@ -179,8 +179,9 @@ class SyslogCollector extends HotspringJob {
     async updateBatchState(batchID, state, updates) {
         // Update the batch state in the database
         const model = global.hotspring.stacks['syslog'].models['logbatch'];
-        await model.updateObject(batchID, {
-            state: state,
+        await model.editObject({
+            batchID,
+            state,
             ...updates
         });
     }
