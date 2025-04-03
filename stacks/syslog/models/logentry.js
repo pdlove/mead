@@ -11,7 +11,7 @@ class LogEntry extends HotspringModel {
   static sequelizeDefinition = {
     logEntryID:  { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true  },
     batchID: { type: DataTypes.INTEGER, allowNull: false },
-    sourceIP: { type: DataTypes.INET, allowNull: true },
+    deviceID: { type: DataTypes.INTEGER, allowNull: false },
     facility: {type: DataTypes.SMALLINT, allowNull: true, },
     severity: {type: DataTypes.SMALLINT, allowNull: true, },
     time: {type: DataTypes.DATE, allowNull: true, },

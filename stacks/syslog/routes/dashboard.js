@@ -35,7 +35,8 @@ class syslogDashboardRoutes extends HotspringRoute {
                     }
                 },
                 group: ["sourceIP"],
-                order: [[Sequelize.fn("MAX", Sequelize.col("time")), "DESC"]]
+                order: [[Sequelize.fn("MAX", Sequelize.col("time")), "DESC"]],
+                logging: console.log
             });
         
             res.json(summary);    

@@ -52,6 +52,7 @@ class LogDashboard {
         this.tableObject.addColumn({ name: "severity_5_count", caption: "Notice", type: "integer", renderer: this.renderSyslogSeverityLink });
         this.tableObject.addColumn({ name: "severity_6_count", caption: "Informational", type: "integer", renderer: this.renderSyslogSeverityLink });
         this.tableObject.addColumn({ name: "severity_7_count", caption: "Debug", type: "integer", renderer: this.renderSyslogSeverityLink });
+        this.tableObject.setSort("sourceIP");
         await this.updateDOM();
     }
 

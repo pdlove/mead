@@ -1,0 +1,15 @@
+There's alot to do so I'm jsut including what to revisit here.
+
+When a syslog flush is done, the IP addresses should get associated with a host.
+    I think I want to do this by "addHostByIP" on the host objects. This function will be responsible for associating it with the right network/location if a network/location is not provided.
+    Need findHostByIP which will later extend to search interfaces.
+    Need to also add the collector as a host so that I can simply associate the collectorID.
+
+Log Storage:
+    When creating the first batch the program should check and see if this collector has any other batches and close those first.
+    Partitioning is needed but I don't know by what factor.
+    Disk storage is needed. 
+        Add a table to track disk files and what server(s) they are on.
+        Disk files can be replicated between servers
+        Each log entry will include a line number and a file reference.
+    

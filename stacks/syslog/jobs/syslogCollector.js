@@ -11,6 +11,7 @@ class SyslogCollector extends HotspringJob {
         isTCP: {type: 'boolean', default: false, description: "Use TCP instead of UDP"},
         autoCreateDevice: {type: 'boolean', default: true, description: "Automatically create a syslog source device if it does not exist"},
         logFlushInterval: {type: 'number', default: 15, description: "The interval in seconds to flush logs to the database or file"},
+        logBatchInterval: {type: 'number', default: 15*60, description: "The interval in seconds to collect logs before creating a new batch. 0 to disable"},
         logDatabaseRotateInterval: {type: 'number', default: 0, description: "The interval in seconds to rotate logs in the database. 0 to disable"},
         logFileRotateInterval: {type: 'number', default: 0, description: "The interval in seconds to rotate logs in the file. 0 to disable"},
         logFilePath: {type: 'string', default: '', description: "The path to a text file to use for testing"},
@@ -26,6 +27,7 @@ class SyslogCollector extends HotspringJob {
     currentLine = 1;
     rotateInProgress = false;
     queuedMessagesByHost = {};
+    lastBatchTime = null;
 
     syslogProcessors = {};
 
@@ -69,14 +71,47 @@ class SyslogCollector extends HotspringJob {
         this.rotateInProgress = false;
 
         //Check if we need to rotate the batch.
-
+        if (this.config.logBatchInterval !== 0) {
+            const now = Date.now();
+            if (!this.lastBatchTime || (now - this.lastBatchTime) >= this.config.logBatchInterval * 1000) {
+                await this.nextBatch(); // Call nextBatch if the interval has elapsed
+                this.lastBatchTime = now; // Update the last batch timestamp
+            }
+        }
+        
+        const deviceModel =  global.hotspring.stacks['network'].models['device'];
+        
         //Upload the information to the current batch. This does it by host so that it can also process the data if possible.
         let hosts = {};
-        console.log("Flush Start");
+        let devIDs = {};
+        let hostProcessor = {};
+
         //Loop through the hosts listed in the processing Queue.
         for (const host in processingQueue) {
             //If the host is not in the host list, add it.
             hosts[host] = {};
+            if (!devIDs[host]) {
+                if (host.includes(".")) {
+                    let hostObject = await deviceModel.findHostByAddress(host, "IPv4");
+                    if (!hostObject) {
+                        hostObject = await deviceModel.createHost({ baseIPv4: host })
+                    }
+                    devIDs[host]=hostObject.deviceID;
+                    hostProcessor[host]='raw';
+                } else {
+                    //Assuming IPv6                    
+                    let hostObject = await deviceModel.findHostByAddress(host, "IPv6");
+                    if (!hostObject) {
+                        hostObject = await deviceModel.createHost({ baseIPv6: host })
+                    }
+                    devIDs[host]=hostObject.deviceID;
+                    hostProcessor[host]='raw';
+                }
+
+
+            }
+
+            
             //Get the Host parameters from the model. SyslogProcessor and SyslogProcessorConfig. (These could be arrays)
             //If the host is not in the model, create it with the Generic Processor.
 
@@ -90,7 +125,7 @@ class SyslogCollector extends HotspringJob {
                     batchID: this.currentBatchID,
                     logEntryID: null,
                     lineID: this.currentLine++,
-                    sourceIP: message.sourceIP,
+                    deviceID: devIDs[host],
                     facility: message.facility,
                     severity: message.severity,
                     time: message.time,
@@ -107,7 +142,7 @@ class SyslogCollector extends HotspringJob {
             }
             //Bulk Upload the Syslog Entries
             const logEntryModel = await global.hotspring.stacks['syslog'].models['logentry'];                
-            const logEntries = await logEntryModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'sourceIP', 'facility', 'severity', 'time', 'state'], returning: true });
+            const logEntries = await logEntryModel.sequelizeObject.bulkCreate(entries, { fields: ['batchID', 'deviceID', 'facility', 'severity', 'time', 'state'], returning: true });
             for (let i = 0;i<entries.length;i++) {
                 entries[i].logEntryID=logEntries[i].dataValues.logEntryID;
             }
@@ -118,8 +153,7 @@ class SyslogCollector extends HotspringJob {
             await logEntryMessageModel.sequelizeObject.bulkCreate(entries, { fields: ['logEntryID', 'message'] });
 
             console.log('Host:', host, 'Messages:', processingQueue[host].length, ' added to Database.');
-        }
-        console.log("Flush Stop");
+        }        
     }
 
     async nextBatch() {
@@ -139,12 +173,12 @@ class SyslogCollector extends HotspringJob {
         newBatch.state = 1; // Active
         newBatch.sourceDeviceID = 0; // Will be updated later to use our agent id
         newBatch.batchStartTime = new Date();
-
+        this.lastBatchTime = newBatch.batchStartTime ; // Update the last batch timestamp
     }
 
     async updateBatchState(batchID, state, updates) {
         // Update the batch state in the database
-        const model = await global.hotspring.stacks['syslog'].models['logbatch'];
+        const model = global.hotspring.stacks['syslog'].models['logbatch'];
         await model.updateObject(batchID, {
             state: state,
             ...updates
@@ -153,11 +187,11 @@ class SyslogCollector extends HotspringJob {
 
     async createLogBatch() {
         // Create a new log batch record in the database
-        const model = await global.hotspring.stacks['syslog'].models['logbatch'];
+        const model = global.hotspring.stacks['syslog'].models['logbatch'];
         const newBatch = await model.addObject({
             state: 1, // Active
-            collectorID: 0, // Will be updated later to use our agent id
-            collectorIP: '127.0.0.1', // Will be updated later to use our agent IP
+            collectorID: global.hotspring.coordinatorHost.deviceID, // Will be updated later to use our agent id
+            collectorIP: "0.0.0.0",
             batchStartTime: new Date()
         });
         return newBatch.dataValues;

@@ -9,6 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "hotspring-framework": "github:pdlove/node-hotspring-framework"
+    "hotspring-framework": "github:pdlove/node-hotspring-framework",
+    "tedious": "^18.6.1"
   }
 }
