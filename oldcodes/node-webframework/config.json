@@ -1,0 +1,17 @@
+{
+  "dbconfig": {
+    "dialect": "postgres",
+    "host": "10.17.1.21",
+    "port": 5432,
+    "database": "mead",
+    "username": "postgres",
+    "password": "jV*9XxUHeUNkm2sQ*JAfGK.YB",
+    "logging": false
+  },
+  "dbconfig_sqlite": {
+    "dialect": "sqlite",
+    "storage": "newdb.sqlite",
+    "logging": false
+  }
+
+}

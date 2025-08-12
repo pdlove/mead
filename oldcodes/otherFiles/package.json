@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "chai": "^5.1.2",
+    "mocha": "^11.1.0",
+    "sequelize": "^6.37.5"
+  }
+}

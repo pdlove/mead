@@ -1,0 +1,171 @@
+AnsiblePlaybook
+AnsiblePlay
+
+
+
+//General Task Parameters
+name = "" //A human-readable name for the task (optional but recommended).
+action = null //Specifies the module to use (alternative to using the module name directly).
+action_options = {} //These are the options being passed to the action.
+args = {} //A dictionary to pass arguments to the module.
+register = null //Stores the result of the task in a variable.
+debugger = "never" //Enables debugging when errors occur (always, never, on_failed).
+
+//Execution Control
+when //A condition that must be met for the task to run.
+failed_when //Custom condition to mark the task as failed.
+changed_when //Defines when a task should be considered "changed."
+check_mode = false //Runs the task in check mode (yes/no).
+run_once = false //Ensures the task runs only once in multi-host plays.
+delegate_to = null //Runs the task on a different host.
+delegate_facts //If yes, copies facts back to the original host.
+ignore_errors //Continues playbook execution even if the task fails.
+ignore_unreachable //Continues execution even if the host is unreachable.
+any_errors_fatal //Stops execution on all hosts if this task fails.
+
+//Looping & Iteration
+with_items //Loops over a list of items.
+loop //Modern alternative to with_items.
+loop_control //Provides additional control over loops (e.g., index_var, label).
+until //Repeats the task until a condition is met.
+retries //Number of retries for the until condition.
+delay //Delay between retries.
+
+//Privilege Escalation
+become //Runs the task with elevated privileges (yes/no).
+become_user //Specifies the user to switch to.
+become_method //Defines the privilege escalation method (sudo, su, etc.).
+
+//Tags & Labels
+tags //Assigns labels to the task for selective execution.
+vars //Defines variables specific to the task.
+
+//Parallelism & Connection Control
+async //Runs the task asynchronously.
+poll //Controls how often Ansible checks async tasks.
+throttle //Limits the number of concurrent task executions.
+connection //Specifies a different connection method for the task.
+
+//Handlers & Notifications
+notify //Triggers a handler if the task changes anything.
+
+
+#Start by Installing all of the required packages
+- name: Prep Work for all Vertex Application Servers
+  package:
+    name:
+      - openjdk-17-jre-headless
+    state: present
+
+#Check if Vertex is installed. There isn't a great way to do this so we're just using the vertex.cfg file presence
+- name: Check if Vertex is Installed
+  stat:
+    path: /vertex/oseries/config/vertex.cfg
+  register: VertexConfigFile
+- set_fact: VertexInstalled="{{ VertexConfigFile.stat.exists }}"
+
+#Check if Vertex Database has been populated
+- set_fact: vertexDB=true #Default to true so that the hosts that aren't the primary won't do database actions
+
+- block:
+    - name: Checking if the Vertex Database is populated
+      community.general.mssql_script:
+        login_user: "{{ vertex_dbuser }}"
+        login_password: "{{ vertex_dbpassword }}"
+        login_host: "{{ vertex_dbserver }}"
+        db: "tps"
+        script: "SELECT COUNT(1) as count FROM INFORMATION_SCHEMA.TABLES"
+        output: dict
+      register: dbexists
+      changed_when: false     
+    - set_fact: vertexDB=false #Default to true so that the hosts that aren't the primary won't do database actions
+      when: dbexists.query_results_dict[0][0][0].count == 0
+
+  when: ansible_ssh_host == groups['vertexweb'][0]
+
+- name: Install Vertex with Failure Handling.
+  block:
+    - name: Create Folder for Vertex
+      ansible.builtin.file:
+        path: /vertex/installers
+        state: directory
+
+    - name: Copy the Vertex Installer
+      ansible.builtin.copy:
+        src: vertex-o-series-install-9.0.0.0.328.jar
+        dest: /vertex/installers/vertex-o-series-install-9.0.0.0.328.jar
+
+    - name: Create the install.properties file for the hosts.
+      ansible.builtin.template:
+        src: install.properties
+        dest: /vertex/installers/install.properties
+
+    - name: Installing Vertex on primary first
+      command:
+        chdir: /vertex/installers
+        cmd: java -jar vertex-o-series-install-9.0.0.0.328.jar -f install.properties
+      when: ansible_ssh_host == groups['vertexweb'][0]
+
+    - name: Installing Vertex on redundants next
+      command:
+        chdir: /vertex/installers
+        cmd: java -jar vertex-o-series-install-9.0.0.0.328.jar -f install.properties
+      when: ansible_ssh_host != groups['vertexweb'][0]
+
+    - name: Uploading License File
+      copy:
+        src: license.dat
+        dest: /vertex/oseries
+
+  rescue: 
+    - name: Installation Rollback. Deleting /vertex folder
+      ansible.builtin.file:
+        state: absent
+        path: /vertex/oseries
+    #- name: Deleting Databases Involved with Vertex
+
+    - fail:
+        msg: "Vertex Web Application Installation Has Failed."
+  when: not VertexInstalled
+
+- name: Adding Vertex User
+  user:
+    name: vertex
+    home: /vertex/oseries
+    create_home: false
+    system: true
+    state: present
+
+- name: Setting Ownership for Vertex Files
+  file:
+    path: /vertex
+    mode: u+rw,g-rwx,o-rwx
+    owner: vertex
+    group: vertex
+    recurse: yes
+  changed_when: false #Suppressing the changed value because it's always as true.
+
+- name: Set Executable on Tomcat files
+  file:
+    path: /vertex/oseries/tomcat/bin/{{ item }}
+    mode: u+x
+    owner: vertex
+    group: vertex
+  with_items:
+    - catalina.sh
+    - daemon.sh
+    - startup.sh
+    - shutdown.sh
+    - version.sh
+    - setclasspath.sh
+
+- name: Copying Vertex service file
+  copy:
+    src: vertex90.service
+    dest: /etc/systemd/system/vertex90.service
+
+- name: Enable and start Vertex Service
+  ansible.builtin.service:
+    name: "vertex90"
+    state: started
+    enabled: true

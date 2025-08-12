@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Job Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+  <div class="container">
+    <h1 id="job-title">Job Details</h1>
+
+    <!-- Job Controls -->
+    <div class="my-3">
+      <button class="btn btn-warning me-2 d-none" id="pauseBtn">Pause</button>
+      <button class="btn btn-danger d-none" id="cancelBtn">Cancel</button>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress mb-3" style="height: 25px;">
+      <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+    </div>
+
+    <!-- Grouped Steps -->
+    <div class="accordion" id="groupAccordion"></div>
+
+    <!-- Logs -->
+    <h4 class="mt-4">Logs</h4>
+    <pre id="log-box" class="bg-light p-3 border" style="height: 250px; overflow-y: auto;"></pre>
+
+    <a href="index.html" class="btn btn-secondary mt-4">Back</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('id');
+    const progressBar = document.getElementById('progress-bar');
+    const logBox = document.getElementById('log-box');
+    const accordion = document.getElementById('groupAccordion');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    const steps = {};
+
+    // Setup step UI
+    function updateStep(group, detail, status) {
+      if (!steps[group]) {
+        steps[group] = {};
+        accordion.innerHTML += `
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading-${group}">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${group}" aria-expanded="true">
+                ${group}
+              </button>
+            </h2>
+            <div id="collapse-${group}" class="accordion-collapse collapse show">
+              <div class="accordion-body">
+                <ul id="list-${group}" class="list-group"></ul>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const list = document.getElementById(`list-${group}`);
+      const badgeClass = {
+        "Done": "success",
+        "Error": "danger",
+        "Warning": "warning",
+        "N/A": "secondary"
+      }[status] || "secondary";
+
+      const badge = `<span class="badge bg-${badgeClass}">${status}</span>`;
+
+      const existing = Array.from(list.children).find(li => li.dataset.detail === detail);
+      if (existing) {
+        existing.innerHTML = `${detail} ${badge}`;
+      } else {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.dataset.detail = detail;
+        li.innerHTML = `${detail} ${badge}`;
+        list.appendChild(li);
+      }
+
+      steps[group][detail] = status;
+    }
+
+    // Load job info
+    fetch(`/api/jobs/${jobId}`)
+      .then(res => res.json())
+      .then(job => {
+        document.getElementById('job-title').textContent = job.name + ' (ID: ' + job.id + ')';
+        if (job.supportsPause) pauseBtn.classList.remove('d-none');
+        if (job.supportsCancel) cancelBtn.classList.remove('d-none');
+        if (job.status !== 'running') {
+          progressBar.style.width = (job.progress || 0) + '%';
+          progressBar.textContent = (job.progress || 0) + '%';
+        }
+      });
+
+    // Pause & Cancel
+    pauseBtn.addEventListener('click', () => {
+      fetch(`/api/jobs/${jobId}/pause`, { method: 'POST' });
+    });
+    cancelBtn.addEventListener('click', () => {
+      fetch(`/api/jobs/${jobId}/cancel`, { method: 'POST' });
+    });
+
+    // WebSocket for live updates
+    const socket = new WebSocket(`ws://${location.host}`);
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ jobId }));
+    };
+
+    socket.onmessage = event => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'progress') {
+        progressBar.style.width = `${data.percent}%`;
+        progressBar.innerText = `${data.percent}%`;
+      } else if (data.type === 'log') {
+        logBox.textContent += `[${data.group}/${data.detail}] ${data.message}\n`;
+        logBox.scrollTop = logBox.scrollHeight;
+      } else if (data.type === 'step') {
+        updateStep(data.group, data.detail, data.status);
+      }
+    };
+
+    // Load historical logs for completed jobs
+    fetch(`/api/jobs/${jobId}/logs`)
+      .then(res => res.json())
+      .then(logs => {
+        logs.forEach(log => {
+          logBox.textContent += `[${log.group_name}/${log.detail}] ${log.message}\n`;
+        });
+        logBox.scrollTop = logBox.scrollHeight;
+      });
+  </script>
+</body>
+</html>

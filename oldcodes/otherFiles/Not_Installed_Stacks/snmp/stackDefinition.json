@@ -1,0 +1,9 @@
+{
+    "name": "SNMP",
+    "description":"Manages SNMP Walk and MIBs. Also Manages updates to SNMP data.",
+    "configuration":{},
+    "clientPackages":[],
+    "jobs":["snmpWalker"],
+    "models":["snmpValuesCurrent", "snmpValuesHistorical", "snmpWalk"],
+    "routes":[]
+}

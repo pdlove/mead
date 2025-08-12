@@ -1,0 +1,26 @@
+{
+  "name": "pint",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@syncfusion/ej2-react-buttons": "^30.1.37",
+    "@syncfusion/ej2-react-dropdowns": "^30.1.39",
+    "@syncfusion/ej2-react-grids": "^30.1.39",
+    "@syncfusion/ej2-react-inputs": "^30.1.38",
+    "@syncfusion/ej2-react-navigations": "^30.1.39",
+    "@syncfusion/ej2-react-popups": "^30.1.37",
+    "@syncfusion/ej2-react-splitbuttons": "^30.1.39",
+    "@syncfusion/ej2-react-treegrid": "^30.1.38",
+    "preact": "^10.26.9"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.2",
+    "vite": "^7.0.3"
+  }
+}

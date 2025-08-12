@@ -1,0 +1,105 @@
+I've got a presentation coming up on LDAPfw. I want to cover a few points:
+ * Quick overview of layout of the active directory being demonstrated.
+ * Basic Active Directory information gathering attacks that aren't really logged on a system.
+ * Why the information such as user information and name, computer name and os and spns are dangerous to have leak out.
+ * How to install LDAPfw.
+ * Basic configuration options.
+ * Demonstration of the informmation gathering AFTER the install.
+ * Pulling log files using powershell.
+I think that's it. I will only have 45 minutes to present but is there anything else important I might be missing?
+
+
+1) Brand new user signing into a computer
+2) An existing user who already setup OneDrive but didn't enable the sync and never received the DFS GPO (Remote site)
+3) An existing user who already setup OneDrive but previously had the DFS GPO. In this case the redirects still point to UNC.
+
+
+Steps:
+
+1) Parse Ansible YML file into node.js
+2) When 
+2) Determine structures other than commands that we need to be aware of. (check_mode, register, etc.... what can those apply to?)
+3) Handle Blocks. A block should be a task with sub-tasks.
+4) Handle playbook structures.
+5) Setup code to run a single task using the ansible command.
+6) Figure out how to parse the logic/math in node.
+7) Next steps?
+
+
+
+
+For the Base Class: 
+name = NonInheritableFieldAttribute(isa='string', default='', always_post_validate=True)
+
+    # connection/transport
+    connection = ConnectionFieldAttribute(isa='string', default=context.cliargs_deferred_get('connection'))
+    port = FieldAttribute(isa='int')
+    remote_user = FieldAttribute(isa='string', default=context.cliargs_deferred_get('remote_user'))
+
+    # variables
+    vars = NonInheritableFieldAttribute(isa='dict', priority=100, static=True)
+
+    # module default params
+    module_defaults = FieldAttribute(isa='list', extend=True, prepend=True)
+
+    # flags and misc. settings
+    environment = FieldAttribute(isa='list', extend=True, prepend=True)
+    no_log = FieldAttribute(isa='bool', default=C.DEFAULT_NO_LOG)
+    run_once = FieldAttribute(isa='bool')
+    ignore_errors = FieldAttribute(isa='bool')
+    ignore_unreachable = FieldAttribute(isa='bool')
+    check_mode = FieldAttribute(isa='bool', default=context.cliargs_deferred_get('check'))
+    diff = FieldAttribute(isa='bool', default=context.cliargs_deferred_get('diff'))
+    any_errors_fatal = FieldAttribute(isa='bool', default=C.ANY_ERRORS_FATAL)
+    throttle = FieldAttribute(isa='int', default=0)
+    timeout = FieldAttribute(isa='int', default=C.TASK_TIMEOUT)
+
+    # explicitly invoke a debugger on tasks
+    debugger = FieldAttribute(isa='string')
+
+    # Privilege escalation
+    become = FieldAttribute(isa='bool', default=context.cliargs_deferred_get('become'))
+    become_method = FieldAttribute(isa='string', default=context.cliargs_deferred_get('become_method'))
+    become_user = FieldAttribute(isa='string', default=context.cliargs_deferred_get('become_user'))
+    become_flags = FieldAttribute(isa='string', default=context.cliargs_deferred_get('become_flags'))
+    become_exe = FieldAttribute(isa='string', default=context.cliargs_deferred_get('become_exe'))
+
+
+collection
+Get Keywords:
+
+ansible-doc -j -t become -l ansible.builtin
+ansible-doc -j -t cache -l ansible.builtin
+ansible-doc -j -t callback -l ansible.builtin
+ansible-doc -j -t cliconf -l ansible.builtin
+ansible-doc -j -t connection -l ansible.builtin
+ansible-doc -j -t httpapi -l ansible.builtin
+ansible-doc -j -t inventory -l ansible.builtin
+ansible-doc -j -t lookup -l ansible.builtin
+ansible-doc -j -t netconf -l ansible.builtin
+ansible-doc -j -t shell -l ansible.builtin
+ansible-doc -j -t vars -l ansible.builtin
+ansible-doc -j -t module -l ansible.builtin
+ansible-doc -j -t strategy -l ansible.builtin
+ansible-doc -j -t test -l ansible.builtin
+ansible-doc -j -t filter -l ansible.builtin
+ansible-doc -j -t role -l ansible.builtin
+ansible-doc -j -t keyword -l ansible.builtin
+
+
+
+namespace
+collection
+description
+version
+tags
+homepage
+documentation
+repository
+
+
+namespace
+collection
+pluginType
+plugin
+description

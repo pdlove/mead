@@ -1,0 +1,44 @@
+-- CreateTable
+CREATE TABLE "PingResult" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "deviceId" TEXT NOT NULL,
+    "timestamp" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isReachable" BOOLEAN NOT NULL,
+    "latency" INTEGER,
+    "error" TEXT,
+    CONSTRAINT "PingResult_deviceId_fkey" FOREIGN KEY ("deviceId") REFERENCES "devices" ("DeviceID") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- RedefineTables
+PRAGMA defer_foreign_keys=ON;
+PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_devices" (
+    "DeviceID" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "model" TEXT,
+    "type" TEXT,
+    "deviceCategoryId" TEXT NOT NULL,
+    "parentId" TEXT,
+    "connectionNotes" TEXT,
+    "mac" TEXT,
+    "ip" TEXT,
+    "isDHCP" BOOLEAN NOT NULL DEFAULT false,
+    "status" TEXT NOT NULL DEFAULT 'Unknown',
+    "lastPoll" DATETIME,
+    "lastResponse" DATETIME,
+    "description" TEXT,
+    "notifyEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "isOnline" BOOLEAN NOT NULL DEFAULT false,
+    "lastLatency" INTEGER,
+    "lastSeen" DATETIME,
+    "downNotificationSent" BOOLEAN NOT NULL DEFAULT false,
+    CONSTRAINT "devices_deviceCategoryId_fkey" FOREIGN KEY ("deviceCategoryId") REFERENCES "device_categories" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "devices_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "devices" ("DeviceID") ON DELETE SET NULL ON UPDATE CASCADE
+);
+INSERT INTO "new_devices" ("DeviceID", "connectionNotes", "description", "deviceCategoryId", "downNotificationSent", "ip", "isDHCP", "lastPoll", "lastResponse", "mac", "model", "name", "notifyEnabled", "parentId", "status", "type") SELECT "DeviceID", "connectionNotes", "description", "deviceCategoryId", "downNotificationSent", "ip", "isDHCP", "lastPoll", "lastResponse", "mac", "model", "name", "notifyEnabled", "parentId", "status", "type" FROM "devices";
+DROP TABLE "devices";
+ALTER TABLE "new_devices" RENAME TO "devices";
+CREATE UNIQUE INDEX "devices_mac_key" ON "devices"("mac");
+CREATE UNIQUE INDEX "devices_ip_key" ON "devices"("ip");
+PRAGMA foreign_keys=ON;
+PRAGMA defer_foreign_keys=OFF;

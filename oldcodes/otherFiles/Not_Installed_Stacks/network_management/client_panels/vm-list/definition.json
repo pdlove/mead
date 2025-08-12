@@ -1,0 +1,8 @@
+{
+    "name": "vm-list",
+    "controls": ["uiTable","adf"],
+    "css": null,
+    "html": ["vm-list.html"],
+    "js": ["vm-list.js"],
+    "startup": ["init_vmlist"]
+}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ARP Scanner</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  label { display: inline-block; width: 120px; margin-bottom: 8px; }
+  input, select { width: 200px; padding: 4px; margin-bottom: 10px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+  th, td { border: 1px solid #aaa; padding: 6px; text-align: left; }
+  th { background: #eee; }
+  .conflict { background-color: #fdd; }
+</style>
+</head>
+<body>
+
+<h1>ARP Scanner</h1>
+
+<form id="scanForm">
+  <label for="ifaceSelect">Interface:</label>
+  <select id="ifaceSelect" required></select><br />
+
+  <label for="cidrInput">CIDR Range:</label>
+  <input type="text" id="cidrInput" placeholder="e.g. 192.168.1.0/24" required /><br />
+
+  <label for="rateInput">Rate (req/s):</label>
+  <input type="number" id="rateInput" min="1" max="100" value="5" required /><br />
+
+  <label for="timeoutInput">Timeout (sec):</label>
+  <input type="number" id="timeoutInput" min="1" max="60" value="5" required /><br />
+
+  <label for="appendCheckbox">Append Results:</label>
+  <input type="checkbox" id="appendCheckbox" /><br />
+
+  <button type="submit">Start Scan</button>
+</form>
+
+<table id="resultsTable">
+  <thead>
+    <tr>
+      <th>IP Address</th>
+      <th>MAC Address</th>
+      <th>Detection Time (UTC)</th>
+      <th>IP Conflict</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+const ifaceSelect = document.getElementById('ifaceSelect');
+const cidrInput = document.getElementById('cidrInput');
+const rateInput = document.getElementById('rateInput');
+const timeoutInput = document.getElementById('timeoutInput');
+const appendCheckbox = document.getElementById('appendCheckbox');
+const scanForm = document.getElementById('scanForm');
+const resultsTableBody = document.querySelector('#resultsTable tbody');
+
+let pollingInterval = null;
+let lastResults = [];
+
+async function fetchInterfaces() {
+  const res = await fetch('/interfaces');
+  const ifaces = await res.json();
+  ifaceSelect.innerHTML = '';
+  ifaces.forEach(i => {
+    const opt = document.createElement('option');
+    opt.value = i.name;
+    opt.textContent = `${i.name} (${i.address})`;
+    ifaceSelect.appendChild(opt);
+  });
+}
+
+function ipToSortKey(ip) {
+  return ip.split('.').map(n => n.padStart(3, '0')).join('.');
+}
+
+function renderResults(results, append) {
+  if (!append) {
+    resultsTableBody.innerHTML = '';
+    lastResults = [];
+  }
+
+  // To show multiple MACs for same IP, we simply list each row.
+  // We'll track conflicts by IP and highlight rows.
+
+  // Sort by IP then MAC
+  results.sort((a, b) => {
+    if (a.ip === b.ip) return a.mac.localeCompare(b.mac);
+    return a.ip.split('.').reduce((acc, v, i) => acc || (parseInt(v) - parseInt(b.ip.split('.')[i])), 0);
+  });
+
+  results.forEach(row => {
+    // Skip if already shown and appending
+    if (append && lastResults.some(r => r.ip === row.ip && r.mac === row.mac && r.timestamps.join() === row.timestamps.join())) {
+      return;
+    }
+
+    const tr = document.createElement('tr');
+    if (row.conflict) tr.classList.add('conflict');
+
+    const ipTd = document.createElement('td');
+    ipTd.textContent = row.ip;
+    const macTd = document.createElement('td');
+    macTd.textContent = row.mac;
+    const timeTd = document.createElement('td');
+    timeTd.textContent = row.timestamps[0] || '';
+    const conflictTd = document.createElement('td');
+    conflictTd.textContent = row.conflict ? 'YES' : '';
+
+    tr.appendChild(ipTd);
+    tr.appendChild(macTd);
+    tr.appendChild(timeTd);
+    tr.appendChild(conflictTd);
+
+    resultsTableBody.appendChild(tr);
+    lastResults.push(row);
+  });
+}
+
+async function fetchResults(append) {
+  try {
+    const res = await fetch('/results');
+    const data = await res.json();
+    renderResults(data, append);
+  } catch (e) {
+    console.error('Error fetching results:', e);
+  }
+}
+
+scanForm.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const iface = ifaceSelect.value;
+  const cidr = cidrInput.value.trim();
+  const rate = parseInt(rateInput.value, 10);
+  const timeout = parseInt(timeoutInput.value, 10);
+  const append = appendCheckbox.checked;
+
+  try {
+    const res = await fetch('/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ iface, cidr, rate, timeout, clear: !append }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      alert(`Scan failed: ${text}`);
+      return;
+    }
+
+    if (!append) {
+      resultsTableBody.innerHTML = '';
+      lastResults = [];
+    }
+
+    // Start polling every 5 seconds (cancel previous if any)
+    if (pollingInterval) clearInterval(pollingInterval);
+    fetchResults(append); // fetch immediately
+    pollingInterval = setInterval(() => fetchResults(append), 5000);
+
+  } catch (err) {
+    alert('Error starting scan: ' + err.message);
+  }
+});
+
+// On page load
+fetchInterfaces();
+</script>
+
+</body>
+</html>

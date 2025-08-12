@@ -1,0 +1,152 @@
+/* src/pages/Dashboard.css */
+
+.dashboard-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f6;
+    min-height: 100vh;
+}
+
+.dashboard-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.dashboard-container button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.dashboard-container button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.dashboard-container button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.loading-message, .no-data-message {
+    text-align: center;
+    color: #6c757d;
+    padding: 20px;
+    font-style: italic;
+}
+
+.device-treeview ul {
+    list-style-type: none;
+    padding-left: 0; /* Remove default list padding */
+}
+
+.device-treeview li {
+    margin-bottom: 5px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.device-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer; /* Indicate it's clickable for expansion */
+    border-bottom: 1px solid #eee;
+}
+
+.device-item ul {
+    padding-left: 25px; /* Indent child lists */
+    border-top: none; /* No border between parent header and child list */
+}
+
+.level-0 > .device-header {
+    font-weight: bold;
+    background-color: #e9ecef;
+}
+
+.level-1 > .device-header {
+    background-color: #f8f9fa;
+}
+
+.level-2 > .device-header {
+    background-color: #ffffff;
+}
+
+.expand-toggle {
+    margin-right: 10px;
+    font-size: 0.8em;
+    cursor: pointer;
+    user-select: none; /* Prevent text selection */
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 1px solid #ccc;
+    flex-shrink: 0; /* Prevent dot from shrinking */
+}
+
+.status-dot.online {
+    background-color: #28a745; /* Green */
+    border-color: #28a745;
+}
+
+.status-dot.offline {
+    background-color: #dc3545; /* Red */
+    border-color: #dc3545;
+}
+
+.device-name {
+    flex-grow: 1; /* Allows name to take available space */
+    font-weight: 600;
+    margin-right: 15px;
+    color: #343a40;
+}
+
+.device-ip {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-right: 15px;
+}
+
+.device-latency {
+    font-size: 0.9em;
+    color: #495057;
+    margin-right: 15px;
+    min-width: 100px; /* Give some space */
+}
+
+.latency-sparkline {
+    width: 100px; /* Fixed width for sparkline */
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e9ecef;
+    border-radius: 3px;
+    background-color: #fdfdfd;
+}
+
+.latency-sparkline .no-data {
+    font-size: 0.7em;
+    color: #999;
+}

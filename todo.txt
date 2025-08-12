@@ -1,0 +1,16 @@
+* Finish Login endpoint basic tests
+* Change Company to Organization on logins
+* Add model for Session and have Login endpoint pass that instead of User ID.
+* Finish Login endpoint create session. 
+* Token Validator check session information and return session config.
+Finish making Basic Model Endpoint respect token.
+
+* Create and Test Login Component (Initial Form)
+App.jsx should test token before showing Login
+Create and Test OTP Creation Component
+Finish Login endpoint OTP tests
+Create and Test OTP Management Component
+Create and Test Logout Component
+Create and Test Password Change Component
+Create and Test Session List Component (Include admin being able to see all)
+Site Admin vs Organization Admin vs Non-Admin Security checks

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Category Tree with Smart Drag and Drop</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    .toggle-btn {
+      cursor: pointer;
+      margin-right: 5px;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+    .btn {
+      padding: 4px 8px;
+      margin-left: 5px;
+      cursor: pointer;
+    }
+    img {
+      max-height: 40px;
+    }
+    .drag-hover-top {
+      border-top: 2px solid blue;
+    }
+    .drag-hover-bottom {
+      border-bottom: 2px solid blue;
+    }
+    .drag-hover-middle {
+      background-color: #e0f7ff;
+    }
+  </style>
+</head>
+<body>
+<h2>Category Tree</h2>
+<form id="addForm">
+  <input type="text" id="newName" placeholder="Name" required>
+  <input type="text" id="newDescription" placeholder="Description">
+  <input type="text" id="newImageUrl" placeholder="Image URL">
+  <button type="submit">Add Category</button>
+</form>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Image</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="category-body"></tbody>
+</table>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+  let categories = [
+    { categoryID: 1, name: "Electronics", description: "All gadgets", imageUrl: "img1.jpg", parentCategoryID: null },
+    { categoryID: 2, name: "Phones", description: "Smartphones", imageUrl: "img2.jpg", parentCategoryID: 1 },
+    { categoryID: 3, name: "Laptops", description: "Computers", imageUrl: "img3.jpg", parentCategoryID: 1 },
+    { categoryID: 4, name: "Accessories", description: "Add-ons", imageUrl: "img4.jpg", parentCategoryID: 2 },
+  ];
+  let nextID = 5;
+
+  function buildTree() {
+    const map = {}, roots = [];
+    categories.forEach(cat => map[cat.categoryID] = { ...cat, children: [] });
+    categories.forEach(cat => {
+      if (cat.parentCategoryID != null && map[cat.parentCategoryID]) {
+        map[cat.parentCategoryID].children.push(map[cat.categoryID]);
+      } else {
+        roots.push(map[cat.categoryID]);
+      }
+    });
+    return roots;
+  }
+
+  function renderTree(tree, parentID = null, level = 0) {
+    let html = '';
+    tree.forEach(cat => {
+      const hasChildren = cat.children.length > 0;
+      const toggle = hasChildren ? `<span class="toggle-btn" onclick="toggleChildren(${cat.categoryID})" id="toggle-${cat.categoryID}">[+]</span>` : `<span style="display:inline-block;width:18px;"></span>`;
+      html += `<tr data-id="${cat.categoryID}" data-parent="${parentID ?? ''}" class="${parentID ? 'child hidden' : ''}" style="--level:${level}">
+        <td style="padding-left:${level * 20}px">${toggle} ${cat.name}</td>
+        <td>${cat.description ?? ''}</td>
+        <td>${cat.imageUrl ? `<img src="${cat.imageUrl}" alt="">` : ''}</td>
+        <td><button class="btn" onclick="deleteCategory(${cat.categoryID})">Delete</button></td>
+      </tr>`;
+      if (hasChildren) {
+        html += renderTree(cat.children, cat.categoryID, level + 1);
+      }
+    });
+    return html;
+  }
+
+  function renderAll() {
+    const tree = buildTree();
+    document.getElementById("category-body").innerHTML = renderTree(tree);
+  }
+
+  function toggleChildren(id) {
+    const rows = document.querySelectorAll(`[data-parent='${id}']`);
+    const toggle = document.getElementById(`toggle-${id}`);
+    const expand = toggle.textContent === '[+]';
+    toggle.textContent = expand ? '[-]' : '[+]';
+    rows.forEach(row => {
+      row.classList.toggle('hidden', !expand);
+    });
+  }
+
+  function deleteCategory(id) {
+    categories = categories.filter(cat => cat.categoryID !== id && cat.parentCategoryID !== id);
+    renderAll();
+  }
+
+  document.getElementById("addForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("newName").value.trim();
+    const desc = document.getElementById("newDescription").value.trim();
+    const img = document.getElementById("newImageUrl").value.trim();
+    categories.push({ categoryID: nextID++, name, description: desc, imageUrl: img, parentCategoryID: null });
+    e.target.reset();
+    renderAll();
+  });
+
+  renderAll();
+
+  let dragOverRow = null;
+  let dragIndicator = '';
+
+  new Sortable(document.getElementById("category-body"), {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    onMove: function (evt) {
+      const target = evt.related;
+      const rect = target.getBoundingClientRect();
+      const offset = evt.originalEvent.clientY - rect.top;
+      const third = rect.height / 3;
+
+      target.classList.remove('drag-hover-top', 'drag-hover-bottom', 'drag-hover-middle');
+      if (offset < third) {
+        dragIndicator = 'above';
+        target.classList.add('drag-hover-top');
+      } else if (offset > 2 * third) {
+        dragIndicator = 'below';
+        target.classList.add('drag-hover-bottom');
+      } else {
+        dragIndicator = 'child';
+        target.classList.add('drag-hover-middle');
+      }
+      dragOverRow = target;
+    },
+    onEnd: function (evt) {
+      if (!dragOverRow) return;
+      const draggedID = parseInt(evt.item.dataset.id);
+      const targetID = parseInt(dragOverRow.dataset.id);
+
+      if (draggedID === targetID) return;
+      const dragged = categories.find(c => c.categoryID === draggedID);
+      const index = categories.findIndex(c => c.categoryID === draggedID);
+      categories.splice(index, 1);
+
+      const targetIndex = categories.findIndex(c => c.categoryID === targetID);
+
+      if (dragIndicator === 'above') {
+        dragged.parentCategoryID = categories[targetIndex].parentCategoryID;
+        categories.splice(targetIndex, 0, dragged);
+      } else if (dragIndicator === 'below') {
+        dragged.parentCategoryID = categories[targetIndex].parentCategoryID;
+        categories.splice(targetIndex + 1, 0, dragged);
+      } else if (dragIndicator === 'child') {
+        dragged.parentCategoryID = targetID;
+        categories.push(dragged); // push to end, will be shown under target
+      }
+
+      dragOverRow.classList.remove('drag-hover-top', 'drag-hover-bottom', 'drag-hover-middle');
+      dragOverRow = null;
+      renderAll();
+    }
+  });
+</script>
+</body>
+</html>

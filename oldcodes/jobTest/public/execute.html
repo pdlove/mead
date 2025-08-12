@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Execute Job</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+  <div class="container">
+    <h1>Run New Job</h1>
+    <form id="job-form">
+      <div class="mb-3">
+        <label for="jobName" class="form-label">Job Type</label>
+        <select id="jobName" class="form-select" required></select>
+      </div>
+      <div class="mb-3">
+        <label for="params" class="form-label">Parameters (JSON)</label>
+        <textarea id="params" class="form-control" rows="4">{}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Start Job</button>
+      <a href="index.html" class="btn btn-secondary ms-2">Back</a>
+    </form>
+  </div>
+
+  <script>
+    fetch('/api/jobs/registered')
+      .then(res => res.json())
+      .then(jobs => {
+        const select = document.getElementById('jobName');
+        jobs.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+      });
+
+    document.getElementById('job-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = document.getElementById('jobName').value;
+      const paramsText = document.getElementById('params').value;
+      try {
+        const params = JSON.parse(paramsText);
+        const res = await fetch('/api/jobs/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, params })
+        });
+        const data = await res.json();
+        if (data.jobId) {
+          location.href = `details.html?id=${data.jobId}`;
+        } else {
+          alert('Failed to start job: ' + data.error);
+        }
+      } catch (err) {
+        alert('Invalid JSON parameters');
+      }
+    });
+  </script>
+</body>
+</html>

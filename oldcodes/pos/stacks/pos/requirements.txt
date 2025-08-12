@@ -1,0 +1,20 @@
+We have a custom design company.
+We have many different designs and each design can be applied to one or more different products. Different products require slightly different image files as the design has to be tweaked for different sizes.
+We have many different products, such as 20 oz water bottles, 40 oz tumblers, and coffee cups which can be categorized as drinkware. We have t-shirts and hoodies which are categorized as clothing. We have 3d Printed items and other items that would be in a category.
+For each product, I need a way to identify the size and shape of a product for the purpose of sizing the designs. For example, A cylinder 11" high and 10" around, a rectangle 5" high and 4" wide. Some products might have multiple design positions that can be used. On a shirt, breastpocket, arm, back.
+For each product, we need to have one or more mockup images and a way to map a design to the mockup.
+Products may have multiple sizes and colors.
+Each product size and color may have a different supplier and cost.
+I need to be able to track inventory for each individual product.
+The inventory combinations are product, size, color, design (Where design can be blank)
+Inventory should track item with a quantity of 1.
+I need to be able to track suppliers and receipts.
+When receiving product, I expect to specify the cost so I can track cost for each product.
+
+I need a way to bill the customer with a transaction
+The transaction screen should display product categories and allow me to select a product to add to the customer's invoice.
+I also should be able to collect customer information:
+	Business/Person
+	Name, email, phone number, address, exclude from mailers.
+When done, a PDF of the receipt should be generated. 
+The customer transaction should be stored with a header and a detail table. The header stores customer id, total, payment method. while the detail tracks price, cost, inventory id, etc.

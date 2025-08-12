@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ARP Listener</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-4">
+    <h2 class="mb-4">Network Interfaces</h2>
+    <table class="table table-bordered table-hover">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Select</th>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+          <th scope="col">Addresses</th>
+        </tr>
+      </thead>
+      <tbody id="interfacesTable">
+        <!-- Dynamically filled with JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+ <script>
+  async function loadInterfaces() {
+    const interfaces = await window.hotspringAPI.getInterfaces();
+
+    const table = document.getElementById('interfacesTable');
+    interfaces.forEach(iface => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="checkbox" name="selectInterface" value="${iface.name}"></td>
+        <td>${iface.name}</td>
+        <td>${iface.description || ''}</td>
+        <td>${(iface.addresses || []).join('<br>')}</td>
+      `;
+      table.appendChild(row);
+    });
+  }
+
+  loadInterfaces();
+</script>
+</body>
+</html>

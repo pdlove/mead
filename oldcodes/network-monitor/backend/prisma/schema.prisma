@@ -1,0 +1,108 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Can be changed to "postgresql", "mysql", etc. later
+  url      = env("DATABASE_URL")
+}
+
+model Device {
+  id                      String                  @id @default(uuid()) @map("DeviceID") // UUID for DeviceID
+  name                    String
+  model                   String?
+  type                    String?
+  
+  category                DeviceCategory          @relation(fields: [categoryId], references: [id])
+  categoryId              String                  @map("deviceCategoryId")
+  
+  parent                  Device?                 @relation("ParentChildDevices", fields: [parentId], references: [id])
+  parentId                String?
+  connectionNotes         String?
+  childDevices            Device[]                @relation("ParentChildDevices") // <--- ADDED: Opposite side of parentDevice relation
+  
+  macAddress              String?                 @unique @map("mac") // MAC addresses are typically unique
+  ipAddress               String?                 @unique @map("ip") // Renamed field, but maps to existing 'ip' column
+  isDHCP                  Boolean                 @default(false)
+  status                  String    @default("Unknown") // Example status
+  lastPoll                DateTime?
+  lastResponse            DateTime?
+  description             String?
+  notifyEnabled           Boolean   @default(true) // Example default
+
+  pollLatencies           PollLatency[]
+  aggregatedPollLatencies AggregatedPollLatency[] // <--- ADDED: Opposite side of aggregatedPollLatency relation
+
+  // Current Ping Status fields
+  isOnline      Boolean   @default(false) // Whether the device is currently reachable
+  lastLatency   Int?      // Last recorded latency in milliseconds
+  lastSeen      DateTime? // Timestamp of the last successful ping
+  pingResults             PingResult[]
+  downNotificationSent    Boolean                 @default(false) // To track if a down notification has been sent
+
+  
+  @@map("devices")
+}
+
+model DeviceCategory {
+  id                String   @id @default(uuid())
+  name              String   @unique
+  notifyDownPolls Int // -1 for never, otherwise number of missed polls
+  notifyUpPolls     Int // Number of successful polls before "up" notification
+  pollInterval      Int // Seconds
+  lastPoll          DateTime // Updated when we poll.
+  nextPoll          DateTime // Updated when we poll.
+  claimedNode       String? //Used to track who is currently polling.
+  claimHeartbeat    DateTime? // Used to track it the claimant is doing anything.
+  devices           Device[]
+
+  @@map("device_categories")
+}
+
+model PollLatency {
+  id        String   @id @default(uuid())
+  deviceId  String
+  device    Device   @relation(fields: [deviceId], references: [id])
+  timestamp DateTime @default(now())
+  latencyMs Int // Latency in milliseconds (or -1 for missed poll)
+
+  @@map("poll_latencies")
+}
+
+model AggregatedPollLatency {
+  id               String   @id @default(uuid())
+  deviceId         String
+  device           Device   @relation(fields: [deviceId], references: [id])
+  startTime        DateTime // Start of the 5-minute block
+  endTime          DateTime // End of the 5-minute block
+  averageLatencyMs Float // Average latency in the block
+  missedPollsCount Int // Number of missed polls in the block
+
+  @@map("aggregated_poll_latencies")
+}
+
+
+model PingResult {
+  id          String   @id @default(uuid())
+  deviceId    String
+  device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade) // Cascade delete if device is removed
+  timestamp   DateTime @default(now())
+  isReachable Boolean
+  latency     Int?
+  error       String?   // Store ping error message if any
+}
+
+model EmailSetting {
+  id          String  @id @default(uuid())
+  smtpHost    String
+  smtpPort    Int
+  smtpUser    String?
+  smtpPass    String?
+  smtpSecure  Boolean @default(false)
+  fromAddress String
+  toAddresses String // Comma-separated email addresses
+
+  @@map("email_settings")
+}
