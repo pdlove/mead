@@ -1,0 +1,48 @@
+
+
+Critical: Verify Stack Load Process
+ 1) Load All Stacks from Disk
+ 2) Activate the System Stack
+ 3) Activate any stack enabled in config.json (Write database option to enable there as well)
+ 3) Load enabled option for all Stacks from database 
+ 4) Activate any stack enabled in the database.
+ 5) Connect relationships
+ 6) Sync database
+
+ Activation Process:
+	1) If stack is "system" then sync these models: "stack", "menu"
+	2) Check stack exists in stacks model.
+	3) Add or Edit the Stack
+	4) Add all models for the stack (These are automatically added to the sequel
+
+Default Configuration: Auto-enable all detected stacks
+
+Features in Development:
+    Need to create the HotspringJob to allow running a job from a database entry.
+        Screen to create a Job from a Hotspring Job Template.
+        Job Server to execute pending HotspringJobs
+        Job Status Reporting
+        Automatic Rescheduling Jobs that are set to be scheduled
+        Alerting when jobs stop that are "Service" jobs
+    Update Models to allow multi-column pkeys
+    Update Models to create relationships
+    Add to hotspringServer Initialize to fetch configuration from the database if initialized.
+
+Next Features to Develop:
+    When database is initialized in the beginning, the menu items are trying to create before the table is created.                     
+    Implement a Data Interaction Object that is passed to jobs and routes.
+        This object will contain only the models that the job or route declares it needs with declared permissions.
+    Add support for a Virtual Model that aggregates Data but has relationships and fields (really a view)
+
+
+Future Features:
+    Implement User Login Process (Global on/off for this function)
+    Add "Security Filtering" to models that is always applied for current users.
+    Add a "compressed" field to a sequelize Deifinition to allow specifying to use zlib.
+
+Possible Bugs:
+    Update HotspringModel to throw a proper error if sequelizeObject is undefined.
+    There is a bug in the express routing module I created that allows for "/api/system/model/system/stack" to actually call "/api/system/stack"
+
+Completed:
+    

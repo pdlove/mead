@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Organization Tree</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        .icon-cell {
+            width: 30px;
+            text-align: center;
+        }
+
+        .tree-row:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .tree-indent-1 {
+            padding-left: 2rem;
+        }
+
+        .tree-indent-2 {
+            padding-left: 4rem;
+        }
+
+        .popover-header {
+            font-weight: bold;
+        }
+
+        .collapse-row>td {
+            background-color: #f0f8ff;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container my-4">
+  <div class="mb-3">
+    <label for="orgSelect" class="form-label">Select Organization</label>
+    <select class="form-select" id="orgSelect">
+      <option value="">-- Choose an Organization --</option>
+    </select>
+  </div>
+    <div class="container my-4">
+        <h3>Organization Network Tree</h3>
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th class="icon-cell"></th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>VLAN</th>
+                    <th>802.1Q</th>
+                    <th>CIDR</th>
+                </tr>
+            </thead>
+            <tbody id="tree-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Modal for editing -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit</h5><button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+                <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const data = {
+            organizations: [
+                {
+                    "organizationID": "d11f5a17-3b5b-4a6f-96ec-77616e730cea",
+                    "name": " Taming IT",
+                    "description": " The MEAD parent Company",
+                    "streetAddress": "",
+                    "phonenumber": "",
+                    "ownerUserID": "a0ec3f73-65f5-41b6-b222-894443bc8a14",
+                    "technicalContact": "",
+                    "technicalContactEmail": "",
+                    "technicalContactPhone": "",
+                    "technicalContactNotes": "",
+                    "billingContact": "",
+                    "billingContactEmail": "",
+                    "billingContactPhone": "",
+                    "billingContactNotes": "",
+                    "schedulingContact": "",
+                    "schedulingContactEmail": "",
+                    "schedulingContactPhone": "",
+                    "schedulingContactNotes": ""
+                },
+                {
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "Nexora Solutions",
+                    "description": "Cloud-native enterprise software provider",
+                    "streetAddress": "1438 Willow Bend Dr, Springfield, IL 62704",
+                    "phonenumber": "(217) 555-7291",
+                    "ownerUserID": "cf40da73-4c13-4497-89cf-212ffdef0659",
+                    "technicalContact": "Jamie Chen",
+                    "technicalContactEmail": "jchen@nexora.com",
+                    "technicalContactPhone": "(217) 555-9203",
+                    "technicalContactNotes": "Handles cloud integration and backend infrastructure.",
+                    "billingContact": "Mark Redford",
+                    "billingContactEmail": "mredford@nexora.com",
+                    "billingContactPhone": "(217) 555-5582",
+                    "billingContactNotes": "Contact for invoicing and payment issues.",
+                    "schedulingContact": "Alicia Dominguez",
+                    "schedulingContactEmail": "adominguez@nexora.com",
+                    "schedulingContactPhone": "(217) 555-3321",
+                    "schedulingContactNotes": "Coordinates system update and deployment timelines."
+                },
+                {
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "Bluegrid Technologies",
+                    "description": "IoT and smart sensor hardware manufacturing",
+                    "streetAddress": "6281 Bayview Terrace, Tampa, FL 33615",
+                    "phonenumber": "(813) 555-1843",
+                    "ownerUserID": "b9eb34a3-246d-4674-a9bf-db477e20ce2e",
+                    "technicalContact": "Leo Watkins",
+                    "technicalContactEmail": "lwatkins@bluegridtech.com",
+                    "technicalContactPhone": "(813) 555-0148",
+                    "technicalContactNotes": "Manages device firmware and diagnostics.",
+                    "billingContact": "Sandra Lin",
+                    "billingContactEmail": "sandra.lin@bluegridtech.com",
+                    "billingContactPhone": "(813) 555-6002",
+                    "billingContactNotes": "Handles billing cycles and contract renewals.",
+                    "schedulingContact": "Brian Ellis",
+                    "schedulingContactEmail": "bellis@bluegridtech.com",
+                    "schedulingContactPhone": "(813) 555-8787",
+                    "schedulingContactNotes": "Oversees installation and maintenance appointments."
+                },
+                {
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "Vantico Systems",
+                    "description": "Network infrastructure consulting for mid-sized enterprises",
+                    "streetAddress": "309 West Elm Street, Fort Worth, TX 76104",
+                    "phonenumber": "(817) 555-6027",
+                    "ownerUserID": "3cab3a43-1dc6-43df-ba61-34664b2a1267",
+                    "technicalContact": "Priya Mehta",
+                    "technicalContactEmail": "pmehta@vantico.io",
+                    "technicalContactPhone": "(817) 555-2210",
+                    "technicalContactNotes": "Specializes in VLAN design and security compliance.",
+                    "billingContact": "Jerome Fields",
+                    "billingContactEmail": "jfields@vantico.io",
+                    "billingContactPhone": "(817) 555-0094",
+                    "billingContactNotes": "Manages purchase orders and financial records.",
+                    "schedulingContact": "Carla Nguyen",
+                    "schedulingContactEmail": "cnguyen@vantico.io",
+                    "schedulingContactPhone": "(817) 555-1942",
+                    "schedulingContactNotes": "Books on-site audits and review sessions."
+                }
+            ],
+            vlans: [
+                {
+                    "vlanID": "f2c15b97-1d2e-49ea-a63a-b3d59aa0d0d9  ",
+                    "organizationID": "d11f5a17-3b5b-4a6f-96ec-77616e730cea",
+                    "name": "default",
+                    "description": "Basic Computer Network For Daily Use",
+                    "vlan8021qID": "1",
+                    "securityLevelID": "100"
+                },
+                {
+                    "vlanID": "4c82d263-9f43-4c5c-8502-d061a878388f  ",
+                    "organizationID": "d11f5a17-3b5b-4a6f-96ec-77616e730cea",
+                    "name": "test",
+                    "description": "Test Environment for the dangerous stuff",
+                    "vlan8021qID": "2",
+                    "securityLevelID": "40"
+                },
+                {
+                    "vlanID": "0c059404-ea00-4bdb-a3b3-1590e1705bb1  ",
+                    "organizationID": "d11f5a17-3b5b-4a6f-96ec-77616e730cea",
+                    "name": "demo",
+                    "description": "Demonstration Environment",
+                    "vlan8021qID": "3",
+                    "securityLevelID": "60"
+                },
+                {
+                    "vlanID": "0f5de6fa-3ab3-4fcb-b5f2-9eb81d90f337  ",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "internal",
+                    "description": "Company Use",
+                    "vlan8021qID": "1",
+                    "securityLevelID": "80"
+                },
+                {
+                    "vlanID": "80b594ef-1240-4e68-9bc7-5c2cfba20155  ",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "server",
+                    "description": "Server Core",
+                    "vlan8021qID": "99",
+                    "securityLevelID": "100"
+                },
+                {
+                    "vlanID": "39b18734-6b94-4e96-9406-98656a4a4ef3  ",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "guest",
+                    "description": "For Visitors and TV Access",
+                    "vlan8021qID": "50",
+                    "securityLevelID": "10"
+                },
+                {
+                    "vlanID": "71642b56-e394-4d30-bf2b-926cc2cd2a2e  ",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "testenv1",
+                    "description": "Simulation of PDC",
+                    "vlan8021qID": "101",
+                    "securityLevelID": "60"
+                },
+                {
+                    "vlanID": "052c8329-0a26-4b3d-8bb9-2edc9a06340f  ",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "testenv2",
+                    "description": "Simulation of BDC",
+                    "vlan8021qID": "102",
+                    "securityLevelID": "60"
+                },
+                {
+                    "vlanID": "ddd3e3fa-1a11-40cd-8654-012bf314091e  ",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "internal",
+                    "description": "Workstation use",
+                    "vlan8021qID": "5",
+                    "securityLevelID": "80"
+                },
+                {
+                    "vlanID": "1796a73e-9892-4cb4-8b4a-d92be6d68a3b  ",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "utility",
+                    "description": "Thermostats and non-production equipment",
+                    "vlan8021qID": "10",
+                    "securityLevelID": "60"
+                },
+                {
+                    "vlanID": "b8d509f2-9fbd-4b5d-a04d-bf874a13ab8f  ",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "server",
+                    "description": "Servers for tracking stuffs",
+                    "vlan8021qID": "32",
+                    "securityLevelID": "80"
+                },
+                {
+                    "vlanID": "b1bb0db1-31df-4d36-9104-1fe34567f41b  ",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "plc",
+                    "description": "Production Equipment",
+                    "vlan8021qID": "42",
+                    "securityLevelID": "100"
+                },
+                {
+                    "vlanID": "e214233a-4e4e-4bcb-96ed-5a007f7aa384  ",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "cameras",
+                    "description": "DVR and camera system",
+                    "vlan8021qID": "99",
+                    "securityLevelID": "80"
+                },
+                {
+                    "vlanID": "3dc947e9-b6a3-4b3d-a21a-e9b7a716e4fc  ",
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "internal",
+                    "description": "Laptops and printers",
+                    "vlan8021qID": "1",
+                    "securityLevelID": "50"
+                },
+                {
+                    "vlanID": "e5b624f6-2eb2-4c84-87f0-00411f56b4a7  ",
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "guest",
+                    "description": "",
+                    "vlan8021qID": "2",
+                    "securityLevelID": "20"
+                }
+            ],
+            locations: [
+                {
+                    "locationID": "795c6298-7bf6-47c7-9a16-c99439f9993c",
+                    "organizationID": "d11f5a17-3b5b-4a6f-96ec-77616e730cea",
+                    "name": "Corporate Headquarters",
+                    "ownerUserID": "a0ec3f73-65f5-41b6-b222-894443bc8a14",
+                    "address": "477 Miller Ridge Apt. 795, Texarkana, TX 76074",
+                    "latitude": "44.445214",
+                    "longitude": "-72.576541"
+                },
+                {
+                    "locationID": "88767b74-cce7-4ba2-b86c-c3fc7d67bcd9",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "Site 2",
+                    "ownerUserID": "b9eb34a3-246d-4674-a9bf-db477e20ce2e",
+                    "address": "60975 Jessica Squares, Little Rock, AR 73121",
+                    "latitude": "36.438327",
+                    "longitude": "-90.747224"
+                },
+                {
+                    "locationID": "915b2e80-5138-4962-9aef-045d4ffe9202",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "Site 3",
+                    "ownerUserID": "b9eb34a3-246d-4674-a9bf-db477e20ce2e",
+                    "address": "93328 Davis Island, Memphis, TN 38971",
+                    "latitude": "46.794709",
+                    "longitude": "-95.232849"
+                },
+                {
+                    "locationID": "e30f267d-b554-4914-a9b0-03e5689774af",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "Site 4",
+                    "ownerUserID": "b9eb34a3-246d-4674-a9bf-db477e20ce2e",
+                    "address": "48418 Olsen Plains Apt. 989, St. Louis, MO 63801",
+                    "latitude": "31.764108",
+                    "longitude": "-80.91916"
+                },
+                {
+                    "locationID": "9f37eac1-e839-450e-9fba-a198a7a4a7eb",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "Corporate",
+                    "ownerUserID": "cf40da73-4c13-4497-89cf-212ffdef0659",
+                    "address": "12201 Massey Pine Suite 833, Texarkana, TX 75984",
+                    "latitude": "46.83391",
+                    "longitude": "-67.981228"
+                },
+                {
+                    "locationID": "16b5fd32-7139-496b-ae29-ec3613647559",
+                    "organizationID": "49d06aa0-8567-439c-a118-4707cacd3737",
+                    "name": "Corporate",
+                    "ownerUserID": "b9eb34a3-246d-4674-a9bf-db477e20ce2e",
+                    "address": "1965 Kelly Field Apt. 094, Texarkana, TX 75839",
+                    "latitude": "39.840856",
+                    "longitude": "-109.721139"
+                },
+                {
+                    "locationID": "31d55320-d0de-42bf-9cb5-c2a7549a16de",
+                    "organizationID": "8248c465-3713-4a71-a025-67d5bcd181ad",
+                    "name": "Sales Pit",
+                    "ownerUserID": "cf40da73-4c13-4497-89cf-212ffdef0659",
+                    "address": "8379 Randall Estates Suite 120, Oklahoma City, OK, 73120",
+                    "latitude": "35.46756",
+                    "longitude": "-97.516428"
+                },
+                {
+                    "locationID": "260a23ee-a787-4001-a4de-79a601bbe451",
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "San Diego",
+                    "ownerUserID": "3cab3a43-1dc6-43df-ba61-34664b2a1267",
+                    "address": "0487 Hull Village Suite 759, San Diego, CA 92418",
+                    "latitude": "45.266124",
+                    "longitude": "-80.796599"
+                },
+                {
+                    "locationID": "c48b4177-92bc-40dd-85f0-535485f63f63",
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "Houston",
+                    "ownerUserID": "3cab3a43-1dc6-43df-ba61-34664b2a1267",
+                    "address": "242 Christine Glen, Houston, TX 77102",
+                    "latitude": "35.093718",
+                    "longitude": "-109.241745"
+                },
+                {
+                    "locationID": "3fd7d3a5-c07d-4180-a31e-f860c194348a",
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "New York",
+                    "ownerUserID": "3cab3a43-1dc6-43df-ba61-34664b2a1267",
+                    "address": "1157 Michael Island, New York, NY 10748",
+                    "latitude": "37.270593",
+                    "longitude": "-100.918754"
+                },
+                {
+                    "locationID": "18035ab3-ea54-47d4-aa20-2eb98bfef3e8",
+                    "organizationID": "f5bb5b7d-97e2-414a-b265-057b10321e79",
+                    "name": "Miami",
+                    "ownerUserID": "3cab3a43-1dc6-43df-ba61-34664b2a1267",
+                    "address": "778 Brown Plaza, Miami, FL 33176",
+                    "latitude": "43.811166",
+                    "longitude": "-106.711175"
+                }
+            ],
+            networks: [
+                {
+                    "networkID": "186b357a-6ce1-46e8-9ed2-11b65c9cce0b",
+                    "locationID": "88767b74-cce7-4ba2-b86c-c3fc7d67bcd9",
+                    "vlanID": "ddd3e3fa-1a11-40cd-8654-012bf314091e  ",
+                    "name": "Site 2 - internal",
+                    "description": "",
+                    "ipv4Cidr": "192.168.11.0/24",
+                    "ipv4DefaultGateway": "192.168.11.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "92c742f4-ef34-4ccf-9421-27169fa3294e",
+                    "locationID": "88767b74-cce7-4ba2-b86c-c3fc7d67bcd9",
+                    "vlanID": "1796a73e-9892-4cb4-8b4a-d92be6d68a3b  ",
+                    "name": "Site 2 - utility",
+                    "description": "",
+                    "ipv4Cidr": "192.168.12.0/24",
+                    "ipv4DefaultGateway": "192.168.12.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "f10f4cf1-ef08-4f04-bc31-f17606e1e4d4",
+                    "locationID": "88767b74-cce7-4ba2-b86c-c3fc7d67bcd9",
+                    "vlanID": "b8d509f2-9fbd-4b5d-a04d-bf874a13ab8f  ",
+                    "name": "Site 2 - server",
+                    "description": "",
+                    "ipv4Cidr": "192.168.13.0/24",
+                    "ipv4DefaultGateway": "192.168.13.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "ad6450c3-315f-43bf-8e91-29a91247ba52",
+                    "locationID": "88767b74-cce7-4ba2-b86c-c3fc7d67bcd9",
+                    "vlanID": "b1bb0db1-31df-4d36-9104-1fe34567f41b  ",
+                    "name": "Site 2 - plc",
+                    "description": "",
+                    "ipv4Cidr": "192.168.14.0/24",
+                    "ipv4DefaultGateway": "192.168.14.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "816c2408-021d-4433-b38c-2e9e366541fd",
+                    "locationID": "88767b74-cce7-4ba2-b86c-c3fc7d67bcd9",
+                    "vlanID": "e214233a-4e4e-4bcb-96ed-5a007f7aa384  ",
+                    "name": "Site 2 - cameras",
+                    "description": "",
+                    "ipv4Cidr": "192.168.15.0/24",
+                    "ipv4DefaultGateway": "192.168.15.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "e03a95c7-874a-4548-86e3-c8ca862aab16",
+                    "locationID": "915b2e80-5138-4962-9aef-045d4ffe9202",
+                    "vlanID": "ddd3e3fa-1a11-40cd-8654-012bf314091e  ",
+                    "name": "Site 3 - internal",
+                    "description": "",
+                    "ipv4Cidr": "192.168.21.0/24",
+                    "ipv4DefaultGateway": "192.168.21.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "c4498540-b98a-47e1-a18e-a84a2bef5c71",
+                    "locationID": "915b2e80-5138-4962-9aef-045d4ffe9202",
+                    "vlanID": "1796a73e-9892-4cb4-8b4a-d92be6d68a3b  ",
+                    "name": "Site 3 - utility",
+                    "description": "",
+                    "ipv4Cidr": "192.168.22.0/24",
+                    "ipv4DefaultGateway": "192.168.22.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "714ad5f2-cbae-48ae-89da-60cb5fe37a62",
+                    "locationID": "915b2e80-5138-4962-9aef-045d4ffe9202",
+                    "vlanID": "b8d509f2-9fbd-4b5d-a04d-bf874a13ab8f  ",
+                    "name": "Site 3 - server",
+                    "description": "",
+                    "ipv4Cidr": "192.168.23.0/24",
+                    "ipv4DefaultGateway": "192.168.23.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "c57d42bb-2bc3-4a37-9cad-42ce9c5e8612",
+                    "locationID": "915b2e80-5138-4962-9aef-045d4ffe9202",
+                    "vlanID": "b1bb0db1-31df-4d36-9104-1fe34567f41b  ",
+                    "name": "Site 3 - plc",
+                    "description": "",
+                    "ipv4Cidr": "192.168.24.0/24",
+                    "ipv4DefaultGateway": "192.168.24.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "a2811997-1a68-401d-8aab-05de26bac1e8",
+                    "locationID": "915b2e80-5138-4962-9aef-045d4ffe9202",
+                    "vlanID": "e214233a-4e4e-4bcb-96ed-5a007f7aa384  ",
+                    "name": "Site 3 - cameras",
+                    "description": "",
+                    "ipv4Cidr": "192.168.25.0/24",
+                    "ipv4DefaultGateway": "192.168.25.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "c52cda13-c499-4603-942c-fe45ba8609d3",
+                    "locationID": "e30f267d-b554-4914-a9b0-03e5689774af",
+                    "vlanID": "ddd3e3fa-1a11-40cd-8654-012bf314091e  ",
+                    "name": "Site 4 - internal",
+                    "description": "",
+                    "ipv4Cidr": "192.168.31.0/24",
+                    "ipv4DefaultGateway": "192.168.31.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "2ca5f9d4-c3cf-495e-8cf2-f24d4f9c93b0",
+                    "locationID": "e30f267d-b554-4914-a9b0-03e5689774af",
+                    "vlanID": "1796a73e-9892-4cb4-8b4a-d92be6d68a3b  ",
+                    "name": "Site 4 - utility",
+                    "description": "",
+                    "ipv4Cidr": "192.168.32.0/24",
+                    "ipv4DefaultGateway": "192.168.32.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "d0d85ab4-d805-4d1d-9ca6-a5e7c2b63410",
+                    "locationID": "e30f267d-b554-4914-a9b0-03e5689774af",
+                    "vlanID": "b8d509f2-9fbd-4b5d-a04d-bf874a13ab8f  ",
+                    "name": "Site 4 - server",
+                    "description": "",
+                    "ipv4Cidr": "192.168.33.0/24",
+                    "ipv4DefaultGateway": "192.168.33.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "c6b47f6f-df35-449e-99b3-ec06a132ce0f",
+                    "locationID": "e30f267d-b554-4914-a9b0-03e5689774af",
+                    "vlanID": "b1bb0db1-31df-4d36-9104-1fe34567f41b  ",
+                    "name": "Site 4 - plc",
+                    "description": "",
+                    "ipv4Cidr": "192.168.34.0/24",
+                    "ipv4DefaultGateway": "192.168.34.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "edf83647-9b90-4852-9439-08c9105f2e9b",
+                    "locationID": "e30f267d-b554-4914-a9b0-03e5689774af",
+                    "vlanID": "e214233a-4e4e-4bcb-96ed-5a007f7aa384  ",
+                    "name": "Site 4 - cameras",
+                    "description": "",
+                    "ipv4Cidr": "192.168.35.0/24",
+                    "ipv4DefaultGateway": "192.168.35.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "3ed2cd67-3046-4025-a2f9-9fa21e412d33",
+                    "locationID": "16b5fd32-7139-496b-ae29-ec3613647559",
+                    "vlanID": "ddd3e3fa-1a11-40cd-8654-012bf314091e  ",
+                    "name": "Corporate - internal",
+                    "description": "",
+                    "ipv4Cidr": "192.168.1.0/24",
+                    "ipv4DefaultGateway": "192.168.1.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "37ff8e80-5ea2-4657-8a49-eb8b9788cc59",
+                    "locationID": "16b5fd32-7139-496b-ae29-ec3613647559",
+                    "vlanID": "b8d509f2-9fbd-4b5d-a04d-bf874a13ab8f  ",
+                    "name": "Corporate - server",
+                    "description": "",
+                    "ipv4Cidr": "192.168.2.0/24",
+                    "ipv4DefaultGateway": "192.168.2.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "7c67484f-77fb-43c9-961e-8add8914db65",
+                    "locationID": "16b5fd32-7139-496b-ae29-ec3613647559",
+                    "vlanID": "e214233a-4e4e-4bcb-96ed-5a007f7aa384  ",
+                    "name": "Corporate - cameras",
+                    "description": "",
+                    "ipv4Cidr": "192.168.3.0/24",
+                    "ipv4DefaultGateway": "192.168.3.1",
+                    "ipv4DefaultDnsServers": "[192.168.2.11,192.168.13.11]"
+                },
+                {
+                    "networkID": "047dbb66-3b43-4ad1-a9ce-87bdea2ab089",
+                    "locationID": "9f37eac1-e839-450e-9fba-a198a7a4a7eb",
+                    "vlanID": "0f5de6fa-3ab3-4fcb-b5f2-9eb81d90f337  ",
+                    "name": "Corporate - internal",
+                    "description": "",
+                    "ipv4Cidr": "10.0.0.0/24",
+                    "ipv4DefaultGateway": "10.0.0.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "e6bf1380-06dd-4a27-994c-1e161ef0a20a",
+                    "locationID": "9f37eac1-e839-450e-9fba-a198a7a4a7eb",
+                    "vlanID": "80b594ef-1240-4e68-9bc7-5c2cfba20155  ",
+                    "name": "Corporate - server",
+                    "description": "",
+                    "ipv4Cidr": "10.1.0.0/24",
+                    "ipv4DefaultGateway": "10.1.0.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "b269552e-e820-40e2-ac26-bcfedba7dd0d",
+                    "locationID": "9f37eac1-e839-450e-9fba-a198a7a4a7eb",
+                    "vlanID": "39b18734-6b94-4e96-9406-98656a4a4ef3  ",
+                    "name": "Corporate - guest",
+                    "description": "",
+                    "ipv4Cidr": "192.168.1./24",
+                    "ipv4DefaultGateway": "192.168.1.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "8215b5c8-d8a8-4698-a723-a19335bbbbf7",
+                    "locationID": "9f37eac1-e839-450e-9fba-a198a7a4a7eb",
+                    "vlanID": "71642b56-e394-4d30-bf2b-926cc2cd2a2e  ",
+                    "name": "Corporate - testenv1",
+                    "description": "",
+                    "ipv4Cidr": "192.168.98.0/24",
+                    "ipv4DefaultGateway": "192.168.98.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "290131bf-f041-4fa1-b6a7-ac99b7a21cdb",
+                    "locationID": "9f37eac1-e839-450e-9fba-a198a7a4a7eb",
+                    "vlanID": "052c8329-0a26-4b3d-8bb9-2edc9a06340f  ",
+                    "name": "Corporate - testenv2",
+                    "description": "",
+                    "ipv4Cidr": "192.168.99.0/24",
+                    "ipv4DefaultGateway": "192.168.99.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "b21115f7-014c-4aa9-b846-5988889995d3",
+                    "locationID": "31d55320-d0de-42bf-9cb5-c2a7549a16de",
+                    "vlanID": "0f5de6fa-3ab3-4fcb-b5f2-9eb81d90f337  ",
+                    "name": "Sales Pit - internal",
+                    "description": "",
+                    "ipv4Cidr": "10.0.1.0/24",
+                    "ipv4DefaultGateway": "10.0.1.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "52fdef4b-c7c0-4c29-a7e1-174f859834aa",
+                    "locationID": "31d55320-d0de-42bf-9cb5-c2a7549a16de",
+                    "vlanID": "39b18734-6b94-4e96-9406-98656a4a4ef3  ",
+                    "name": "Sales Pit - guest",
+                    "description": "",
+                    "ipv4Cidr": "192.168.1.0/24",
+                    "ipv4DefaultGateway": "192.168.1.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "977b9298-2a8f-4338-8a74-60053b2188e2",
+                    "locationID": "795c6298-7bf6-47c7-9a16-c99439f9993c",
+                    "vlanID": "f2c15b97-1d2e-49ea-a63a-b3d59aa0d0d9  ",
+                    "name": "Corporate Headquarters - default",
+                    "description": "",
+                    "ipv4Cidr": "10.0.42.0/24",
+                    "ipv4DefaultGateway": "10.0.42.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "587b6d04-d659-4d99-a2e8-e3d7af204c2f",
+                    "locationID": "795c6298-7bf6-47c7-9a16-c99439f9993c",
+                    "vlanID": "4c82d263-9f43-4c5c-8502-d061a878388f  ",
+                    "name": "Corporate Headquarters - test",
+                    "description": "",
+                    "ipv4Cidr": "192.168.99.0/24",
+                    "ipv4DefaultGateway": "192.168.99.1",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "ce01fa5e-b32a-49ee-8b7c-d4c7e02c71a6",
+                    "locationID": "795c6298-7bf6-47c7-9a16-c99439f9993c",
+                    "vlanID": "0c059404-ea00-4bdb-a3b3-1590e1705bb1  ",
+                    "name": "Corporate Headquarters - demo",
+                    "description": "",
+                    "ipv4Cidr": "192.168.1.0/24",
+                    "ipv4DefaultGateway": "192.168.1.1",
+                    "ipv4DefaultDnsServers": "[192.168.1.11,192.168.1.12,192.168.2.11]"
+                },
+                {
+                    "networkID": "f772e36c-0168-4635-99bd-bd358e65024c",
+                    "locationID": "260a23ee-a787-4001-a4de-79a601bbe451",
+                    "vlanID": "3dc947e9-b6a3-4b3d-a21a-e9b7a716e4fc  ",
+                    "name": "San Diego - internal",
+                    "description": "1",
+                    "ipv4Cidr": "172.16.1.0/24",
+                    "ipv4DefaultGateway": "172.16.1.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "1ab0b6bc-39ee-4ad1-9d54-927890c4270e",
+                    "locationID": "260a23ee-a787-4001-a4de-79a601bbe451",
+                    "vlanID": "e5b624f6-2eb2-4c84-87f0-00411f56b4a7  ",
+                    "name": "San Diego - guest",
+                    "description": "1",
+                    "ipv4Cidr": "192.168.1.0/24",
+                    "ipv4DefaultGateway": "192.168.1.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "d32fef9d-2d95-4ba7-bdbf-e4e32ee1621f",
+                    "locationID": "c48b4177-92bc-40dd-85f0-535485f63f63",
+                    "vlanID": "3dc947e9-b6a3-4b3d-a21a-e9b7a716e4fc  ",
+                    "name": "Houston - internal",
+                    "description": "2",
+                    "ipv4Cidr": "172.16.2.0/24",
+                    "ipv4DefaultGateway": "172.16.2.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "6f28ace3-47a7-439e-b266-2fc4981e2998",
+                    "locationID": "c48b4177-92bc-40dd-85f0-535485f63f63",
+                    "vlanID": "e5b624f6-2eb2-4c84-87f0-00411f56b4a7  ",
+                    "name": "Houston - guest",
+                    "description": "2",
+                    "ipv4Cidr": "192.168.2.0/24",
+                    "ipv4DefaultGateway": "192.168.2.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "972a0e3e-acbf-4afa-b7fd-e6afaf4ffab3",
+                    "locationID": "3fd7d3a5-c07d-4180-a31e-f860c194348a",
+                    "vlanID": "3dc947e9-b6a3-4b3d-a21a-e9b7a716e4fc  ",
+                    "name": "New York - internal",
+                    "description": "3",
+                    "ipv4Cidr": "172.16.3.0/24",
+                    "ipv4DefaultGateway": "172.16.3.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "48aa5cf9-8c1d-4c83-a8d7-c9fc062b5a88",
+                    "locationID": "3fd7d3a5-c07d-4180-a31e-f860c194348a",
+                    "vlanID": "e5b624f6-2eb2-4c84-87f0-00411f56b4a7  ",
+                    "name": "New York - guest",
+                    "description": "3",
+                    "ipv4Cidr": "192.168.3.0/24",
+                    "ipv4DefaultGateway": "192.168.3.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "b06a33c6-caee-4709-8a2c-4b41a967ad45",
+                    "locationID": "18035ab3-ea54-47d4-aa20-2eb98bfef3e8",
+                    "vlanID": "3dc947e9-b6a3-4b3d-a21a-e9b7a716e4fc  ",
+                    "name": "Miami - internal",
+                    "description": "4",
+                    "ipv4Cidr": "172.16.4.0/24",
+                    "ipv4DefaultGateway": "172.16.4.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                },
+                {
+                    "networkID": "ce56683d-bccb-4104-b3f5-0812884be6f2",
+                    "locationID": "18035ab3-ea54-47d4-aa20-2eb98bfef3e8",
+                    "vlanID": "e5b624f6-2eb2-4c84-87f0-00411f56b4a7  ",
+                    "name": "Miami - guest",
+                    "description": "4",
+                    "ipv4Cidr": "192.168.4.0/24",
+                    "ipv4DefaultGateway": "192.168.4.254",
+                    "ipv4DefaultDnsServers": "[8.8.8.8,8.8.4.4]"
+                }
+            ]
+        };
+
+const orgSelect = document.getElementById('orgSelect');
+
+data.organizations.forEach(org => {
+  const option = document.createElement('option');
+  option.value = org.organizationID;
+  option.textContent = org.name;
+  orgSelect.appendChild(option);
+});
+
+orgSelect.addEventListener('change', (e) => {
+  const orgID = e.target.value;
+  const selectedOrg = data.organizations.find(o => o.organizationID === orgID);
+  renderOrgTree(selectedOrg);
+});
+
+
+        const treeBody = document.getElementById("tree-body");
+        const getVlanById = id => data.vlans.find(v => v.vlanID.trim() === id.trim());
+
+        let uid = 0;
+        const nextId = () => `id${++uid}`;
+
+        const createIconButton = (icon, collapseTarget) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-link icon-cell';
+            btn.innerHTML = `<i class="fa fa-${icon}"></i>`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll(`.${collapseTarget}`).forEach(row =>
+                    row.classList.toggle('show'));
+            });
+            return btn;
+        };
+
+        let activePopover = null;
+
+        const showPopover = (el, title, dataObj, onEdit, event = null) => {
+            if (activePopover) {
+                activePopover.hide();
+                activePopover = null;
+            }
+
+            const content = document.createElement('div');
+            content.className = 'popover-body small';
+            const bodyHtml = `<pre class="mb-0">${JSON.stringify(dataObj, null, 2)}</pre>`;
+
+            content.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <strong>${title}</strong>
+      <button type="button" class="btn-close btn-sm" aria-label="Close"></button>
+    </div>
+    <div class="mb-2">${bodyHtml}</div>
+    <button class="btn btn-sm btn-outline-primary">Edit</button>
+  `;
+
+            const popover = new bootstrap.Popover(el, {
+                html: true,
+                content: content,
+                placement: 'right',
+                trigger: 'manual',
+                sanitize: false,
+                customClass: 'custom-popover',
+            });
+
+            popover.show();
+            activePopover = popover;
+
+            setTimeout(() => {
+                const popoverEl = document.querySelector('.popover');
+                if (!popoverEl) return;
+
+                if (event) {
+                    const x = event.clientX + 10;
+                    const y = event.clientY + window.scrollY + 10;
+
+                    Object.assign(popoverEl.style, {
+                        top: `${y}px`,
+                        left: `${x}px`,
+                        transform: 'none',
+                        position: 'absolute',
+                    });
+                }
+
+                popoverEl.querySelector('.btn-close')?.addEventListener('click', () => {
+                    popover.hide();
+                    activePopover = null;
+                });
+
+                popoverEl.querySelector('button.btn-outline-primary')?.addEventListener('click', () => {
+                    popover.hide();
+                    activePopover = null;
+                    onEdit();
+                });
+            }, 50);
+        };
+        const bindPopoverAndModal = (el, title, obj) => {
+            const bodyHtml = `<pre class="mb-0">${JSON.stringify(obj, null, 2)}</pre>`;
+            let hoverTimer = null;
+
+            el.addEventListener('mouseenter', (e) => {
+                hoverTimer = setTimeout(() => {
+                    showPopover(el, title, bodyHtml, () => openModal(title, obj), e);
+                }, 1500); // 5000 ms = 5 seconds
+            });
+
+            el.addEventListener('mouseleave', () => {
+                clearTimeout(hoverTimer);
+                hoverTimer = null;
+            });
+
+            el.addEventListener('click', (e) => {
+                clearTimeout(hoverTimer);
+                showPopover(el, title, bodyHtml, () => openModal(title, obj), e);
+            });
+        };
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.popover') && activePopover) {
+                activePopover.hide();
+                activePopover = null;
+            }
+        });
+function openModal(title, dataObj) {
+  const modal = document.getElementById('editModal');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = ''; // Clear previous
+
+  const type = detectType(dataObj);
+  const form = document.createElement('form');
+  form.classList.add('needs-validation');
+
+  // Dispatch to type-specific builder
+  switch (type) {
+    case 'Organization': renderOrganizationEditor(form, dataObj); break;
+    case 'Location':     renderLocationEditor(form, dataObj); break;
+    case 'Network':      renderNetworkEditor(form, dataObj); break;
+    case 'VLAN':         renderVlanEditor(form, dataObj); break;
+    default:             form.innerHTML = '<p>Unsupported type</p>';
+  }
+
+  // Footer with Save/Cancel/Close (in-line)
+  const footer = document.createElement('div');
+  footer.className = 'mt-4 text-end';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'submit';
+  saveBtn.className = 'btn btn-primary me-2';
+  saveBtn.textContent = 'Save';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'btn btn-secondary me-2';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'btn btn-outline-secondary';
+  closeBtn.textContent = 'Close';
+  closeBtn.setAttribute('data-bs-dismiss', 'modal');
+
+  footer.append(saveBtn, cancelBtn, closeBtn);
+  form.appendChild(footer);
+  content.appendChild(form);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const updated = {};
+    for (const [key, val] of formData.entries()) {
+      updated[key] = val;
+    }
+    console.log(`Saved [${type}]`, updated);
+    bootstrap.Modal.getInstance(modal).hide();
+  });
+
+  new bootstrap.Modal(modal).show();
+}
+function renderOrganizationEditor(form, data) {
+  form.innerHTML += `<h5 class="mb-3 text-primary">Editing Organization: ${data.name}</h5>`;
+  ['name', 'description', 'phonenumber'].forEach(key => {
+    form.appendChild(createInput(key, data[key]));
+  });
+}
+function renderLocationEditor(form, data) {
+  form.innerHTML += `<h5 class="mb-3 text-primary">Editing Location: ${data.name}</h5>`;
+  ['name', 'address', 'latitude', 'longitude'].forEach(key => {
+    form.appendChild(createInput(key, data[key]));
+  });
+}
+function renderNetworkEditor(form, data) {
+  const loc = data.locations?.find(l => l.locationID === data.locationID) ||
+              data.locations?.find(l => l.locationID === dataObj?.locationID) ||
+              { name: 'Unknown' };
+  form.innerHTML += `<h5 class="mb-3 text-primary">Editing Network: ${data.name}<br><small>Location: ${loc.name}</small></h5>`;
+
+  ['name', 'description', 'ipv4Cidr', 'ipv4DefaultGateway', 'ipv4DefaultDnsServers'].forEach(key => {
+    form.appendChild(createInput(key, data[key]));
+  });
+
+  form.appendChild(createVlanDropdown(data.vlanID, data));
+}
+function renderVlanEditor(form, data) {
+  form.innerHTML += `<h5 class="mb-3 text-primary">Editing VLAN: ${data.name}</h5>`;
+  ['name', 'description', 'vlan8021qID'].forEach(key => {
+    form.appendChild(createInput(key, data[key]));
+  });
+}
+function createInput(name, value) {
+  const div = document.createElement('div');
+  div.className = 'mb-3';
+  div.innerHTML = `
+    <label class="form-label">${name}</label>
+    <input type="text" class="form-control" name="${name}" value="${value || ''}">
+  `;
+  return div;
+}
+
+function createVlanDropdown(selectedID, networkObj) {
+  const location = data.locations.find(loc => loc.locationID === networkObj.locationID);
+  const orgID = location?.organizationID;
+
+  const vlanOptions = data.vlans
+    .filter(v => v.organizationID === orgID)
+    .map(v => `
+      <option value="${v.vlanID.trim()}" ${v.vlanID.trim() === selectedID.trim() ? 'selected' : ''}>
+        ${v.name} (${v.vlan8021qID})
+      </option>
+    `)
+    .join('');
+
+  const div = document.createElement('div');
+  div.className = 'mb-3';
+  div.innerHTML = `
+    <label class="form-label">VLAN</label>
+    <select class="form-select" name="vlanID">
+      ${vlanOptions || '<option disabled>No VLANs available</option>'}
+    </select>
+  `;
+  return div;
+}
+
+
+
+        function detectType(obj) {
+  if (typeof obj !== 'object' || obj === null) return 'Unknown';
+  if ('vlan8021qID' in obj) return 'VLAN';
+  if ('ipv4Cidr' in obj) return 'Network';
+  if ('address' in obj && 'latitude' in obj) return 'Location';
+  if ('phonenumber' in obj) return 'Organization';
+  return 'Unknown';
+}
+
+
+        const createAddButton = (label, onClick) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-success ms-2';
+            btn.textContent = label;
+            btn.addEventListener('click', onClick);
+            return btn;
+        };
+
+        data.organizations.forEach(org => {
+            const orgId = nextId();
+            const orgRow = document.createElement('tr');
+            orgRow.className = "table-primary";
+
+            const iconTd = document.createElement('td');
+            iconTd.appendChild(createIconButton('plus-square', orgId));
+            orgRow.appendChild(iconTd);
+
+            const nameTd = document.createElement('td');
+            nameTd.colSpan = 5;
+            nameTd.textContent = org.name;
+            bindPopoverAndModal(nameTd, 'Organization', org);
+            nameTd.appendChild(createAddButton('+ Location', () => alert(`Add Location to ${org.name}`)));
+            orgRow.appendChild(nameTd);
+            treeBody.appendChild(orgRow);
+
+            const locations = data.locations.filter(loc => loc.organizationID === org.organizationID);
+            locations.forEach(loc => {
+                const locId = nextId();
+                const locRow = document.createElement('tr');
+                locRow.className = `collapse ${orgId}`;
+
+                const iconTd = document.createElement('td');
+                iconTd.appendChild(createIconButton('plus-square', locId));
+                locRow.appendChild(iconTd);
+
+                const nameTd = document.createElement('td');
+                nameTd.colSpan = 5;
+                nameTd.classList.add('ps-4');
+                nameTd.textContent = loc.name;
+                bindPopoverAndModal(nameTd, 'Location', loc);
+                nameTd.appendChild(createAddButton('+ Network', () => alert(`Add Network to ${loc.name}`)));
+                locRow.appendChild(nameTd);
+                treeBody.appendChild(locRow);
+
+                const networks = data.networks.filter(net => net.locationID === loc.locationID);
+                networks.forEach(net => {
+                    const vlan = getVlanById(net.vlanID);
+                    const netRow = document.createElement('tr');
+                    netRow.className = `collapse ${locId}`;
+
+                    netRow.innerHTML = `
+          <td class="icon-cell"><i class="fa fa-network-wired"></i></td>
+          <td class="ps-5">${net.name}</td>
+          <td>${net.description || ''}</td>
+          <td>${vlan?.name || ''}</td>
+          <td>${vlan?.vlan8021qID || ''}</td>
+          <td>${net.ipv4Cidr}</td>`;
+
+                    bindPopoverAndModal(netRow.cells[1], 'Network', net);
+                    if (vlan) bindPopoverAndModal(netRow.cells[3], 'VLAN', vlan);
+                    treeBody.appendChild(netRow);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

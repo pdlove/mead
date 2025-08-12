@@ -1,0 +1,10 @@
+{
+    "packageName": "table",
+    "description": "Datatables.net driven Table.",
+    "requiredPackages": null,
+    "cssFileList": ["tdatatables.css"],
+    "templateFileList": {},
+    "htmlFileList": [],
+    "jsFileList": ["uiTableAdapter.js","tdatatables.js"],
+    "startupClass": "uiTableAdapter"
+}

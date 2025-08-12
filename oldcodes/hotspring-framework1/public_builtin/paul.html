@@ -1,0 +1,91 @@
+<html>
+    <body>
+<div class="table-container" id="thisTable">
+  <table class="uiTableDense table-striped">
+    <thead>
+      <tr id="column-headers">
+        <th draggable="true" data-field-name="organizationID">organizationID</th>
+        <th draggable="true" data-field-name="name">name</th>
+        <th draggable="true" data-field-name="tagging">tagging</th>
+        <th draggable="true" data-field-name="description">description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>001</td><td>Acme Corp</td><td>tagA</td><td>Test row</td>
+      </tr>
+      <tr>
+        <td>002</td><td>Beta LLC</td><td>tagB</td><td>Another row</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- External Grouping Tree -->
+
+<script>
+const table = document.querySelector("table");
+const headers = table.querySelectorAll("th");
+const tbody = table.querySelector("tbody");
+let dragSrcIndex = null;
+
+// Make headers draggable
+headers.forEach((header, index) => {
+  header.addEventListener("dragstart", (e) => {
+    dragSrcIndex = index;
+    e.dataTransfer.setData("text/plain", header.dataset.fieldName);
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  header.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    header.style.backgroundColor = "#f0f0f0";
+  });
+
+  header.addEventListener("dragleave", () => {
+    header.style.backgroundColor = "";
+  });
+
+  header.addEventListener("drop", (e) => {
+    e.preventDefault();
+    header.style.backgroundColor = "";
+    const dropIndex = index;
+    if (dragSrcIndex === dropIndex) return;
+
+    moveColumn(dragSrcIndex, dropIndex);
+  });
+});
+
+function moveColumn(fromIndex, toIndex) {
+  const rows = table.rows;
+  for (let row of rows) {
+    const cells = row.cells;
+    if (toIndex > fromIndex) {
+      row.insertBefore(cells[fromIndex], cells[toIndex].nextSibling);
+    } else {
+      row.insertBefore(cells[fromIndex], cells[toIndex]);
+    }
+  }
+}
+
+// External Tree (Grouping)
+const groupingTree = document.getElementById("grouping-tree");
+groupingTree.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  groupingTree.style.backgroundColor = "#dff0d8";
+});
+
+groupingTree.addEventListener("dragleave", () => {
+  groupingTree.style.backgroundColor = "";
+});
+
+groupingTree.addEventListener("drop", (e) => {
+  e.preventDefault();
+  const fieldName = e.dataTransfer.getData("text/plain");
+  groupingTree.style.backgroundColor = "";
+  groupingTree.textContent = `Grouping by: ${fieldName}`;
+});
+</script>
+
+    </body>
+</html>

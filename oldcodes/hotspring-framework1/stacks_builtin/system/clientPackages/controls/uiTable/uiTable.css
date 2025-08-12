@@ -1,0 +1,96 @@
+div.uiTableDenseDiv {
+	overflow: auto;
+	position: relative;
+	max-height: 400px;
+	border: 1px solid #aaa;
+}
+
+table.uiTableDense {
+    border: 1px solid #888;
+    border-collapse: collapse;
+    font-size: .8em;
+    line-height: 1;
+    margin: .6em 0 1.8em 0;
+    width: 100%;
+	color: black;
+	border-collapse: collapse;
+    width: max-content;
+    white-space: nowrap;
+}
+
+table.uiTableDense caption {
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: .2em;
+}
+
+table.uiTableDense thead {
+    font-size: 1em;
+	font-weight: bold;
+	position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+table.uiTableDense thead tr th {
+    padding: .3em 1em .3em 1em;
+    text-align: center;
+	background: linear-gradient(to bottom, #CCCCCC 0%, #BBBBBB 50%, #CCCCCC 100%);
+	border: 1px solid #888;
+}
+
+table.uiTableDense tbody tr td {
+    cursor: default;
+    padding: .3em 1em;
+    border: lightgrey solid .25px;	
+	background: inherit;
+}
+
+    /* Sticky first column */
+    table.uiTableDense th:first-child,
+    table.uiTableDense td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+
+    /* Sticky header + first column overlap fix */
+    table.uiTableDense thead th:first-child {
+      z-index: 3;
+    }
+
+table.uiTableDense tbody tr:nth-of-type(even) {
+	background-color: white;
+}
+table.uiTableDense tbody tr:nth-of-type(odd) {
+	background-color: lightgray;
+}
+table.uiTableDense tbody tr:hover {
+	background-color: lightblue;
+}
+table.uiTableDense tbody tr.selected {
+	background-color: lightgoldenrodyellow;
+}
+table.uiTableDense th.asc::after {
+	content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='%235f6368'%3E%3Cpath d='m280-400 200-200 200 200H280Z'/%3E%3C/svg%3E");
+	position: absolute;
+	top: 0px;
+	height: 1em;
+}
+table.uiTableDense th.desc::after {
+	content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='%235f6368'%3E%3Cpath d='M480-360 280-560h400L480-360Z'/%3E%3C/svg%3E");
+	position: absolute;
+	top: 0px;
+	height: 1em;
+}
+
+.column-drop-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #007bff;
+  z-index: 1000;
+  pointer-events: none;
+  transition: left 0.1s ease;
+}

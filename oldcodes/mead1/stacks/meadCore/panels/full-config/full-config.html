@@ -1,0 +1,65 @@
+<!-- Action Buttons -->
+<div class="d-flex align-items-center mb-3">
+    <button id="refresh-button" class="btn btn-secondary me-3">Refresh</button>
+    <button id="save-button" class="btn btn-secondary me-3">Save</button>
+
+</div>
+VLANs: 
+<!-- Table Container -->
+<div class="table-container" id="tblVLANs">
+</div>
+    <!-- name: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    vlan8021qID: { type: DataTypes.INTEGER, allowNull: false },
+    securityLevelID: { type: DataTypes.INTEGER, allowNull: false },
+    lastSeenAt: DataTypes.DATE -->
+
+Locations: 
+<!-- Table Container -->
+<div class="table-container" id="tblLocations">
+</div>
+    <!-- name: { type: DataTypes.STRING, allowNull: false },
+    ownerUserID: { type: DataTypes.UUIDV4, allowNull: false },
+    address: { type: DataTypes.STRING, allowNull: true },
+    latitude: { type: DataTypes.FLOAT, allowNull: true },
+    longitude: { type: DataTypes.FLOAT, allowNull: true },
+    technicalContact: { type: DataTypes.STRING, allowNull: true },
+    technicalContactEmail: { type: DataTypes.STRING, allowNull: true },
+    technicalContactPhone: { type: DataTypes.STRING, allowNull: true },
+    technicalContactNotes: { type: DataTypes.TEXT, allowNull: true },
+    billingContact: { type: DataTypes.STRING, allowNull: true },
+    billingContactEmail: { type: DataTypes.STRING, allowNull: true },
+    billingContactPhone: { type: DataTypes.STRING, allowNull: true },
+    billingContactNotes: { type: DataTypes.TEXT, allowNull: true },
+    schedulingContact: { type: DataTypes.STRING, allowNull: true },
+    schedulingContactEmail: { type: DataTypes.STRING, allowNull: true },
+    schedulingContactPhone: { type: DataTypes.STRING, allowNull: true },
+    schedulingContactNotes: { type: DataTypes.TEXT, allowNull: true }, -->
+Networks: 
+<!-- Table Container -->
+<div class="table-container" id="tblNetworks">
+</div>
+    <!-- networkID: { type: DataTypes.UUIDV4, primaryKey: true },
+    locationID: { type: DataTypes.UUIDV4, allowNull: false },
+    vlanID: { type: DataTypes.UUIDV4, allowNull: false },
+    name: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    ipv4Cidr: { type: DataTypes.STRING, allowNull: false },
+    ipv4DefaultGateway: DataTypes.STRING,
+    ipv4DefaultDnsServers: DataTypes.STRING,
+    ipv6Cidr: DataTypes.STRING,
+    ipv6DefaultGateway: DataTypes.STRING,
+    ipv6DnsServers: DataTypes.STRING,
+    lastSeenAt: DataTypes.DATE -->
+
+<!--
+Syslog Levels
+0 - Emergency
+1 - Alert
+2 - Critical
+3 - Error
+4 - Warning
+5 - Notice
+6 - Informational
+7 - Debug
+-->

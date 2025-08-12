@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Switch Tree from JSON</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    .tree-toggle {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .child-row {
+      display: none;
+    }
+    .level-1 td { padding-left: 20px; }
+    .level-2 td { padding-left: 40px; }
+    .level-3 td { padding-left: 60px; }
+    .level-4 td { padding-left: 80px; }
+  </style>
+</head>
+<body>
+
+<h2>Switch Hierarchy (from JSON)</h2>
+
+<table id="switch-table">
+  <thead>
+    <tr>
+      <th>Switch Name</th>
+      <th>IP Address</th>
+      <th>Model</th>
+      <th>Location</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  // 🔧 Define your switch hierarchy here
+  const treeData = [
+    {
+      name: "Core-Switch",
+      ip: "192.168.1.1",
+      model: "Cisco X",
+      location: "Data Center",
+      children: [
+        {
+          name: "Switch-A",
+          ip: "192.168.1.2",
+          model: "HP 1920",
+          location: "Rack A",
+          children: [
+            {
+              name: "Switch-A1",
+              ip: "192.168.1.3",
+              model: "HP 1920",
+              location: "Floor 1"
+            },
+            {
+              name: "Switch-A2",
+              ip: "192.168.1.4",
+              model: "HP 1920",
+              location: "Floor 2"
+            }
+          ]
+        },
+        {
+          name: "Switch-B",
+          ip: "192.168.1.5",
+          model: "Dell S",
+          location: "Rack B",
+          children: [
+            {
+              name: "Switch-B1",
+              ip: "192.168.1.6",
+              model: "Dell S",
+              location: "Floor 3"
+            },
+            {
+              name: "Switch-B2",
+              ip: "192.168.1.7",
+              model: "Dell S",
+              location: "Floor 4"
+            }
+          ]
+        }
+      ]
+    }
+  ];
+
+  let rowId = 0;
+
+  function createRow(node, level, parentId = null) {
+    const id = ++rowId;
+    const tr = document.createElement("tr");
+    tr.classList.add(`level-${level}`);
+    if (parentId !== null) {
+      tr.classList.add("child-row");
+      tr.dataset.parent = parentId;
+    }
+    tr.dataset.id = id;
+
+    const toggleText = node.children ? "▶ " : "";
+    const tdName = document.createElement("td");
+    tdName.innerHTML = toggleText + node.name;
+    if (node.children) {
+      tdName.classList.add("tree-toggle");
+      tdName.dataset.target = id;
+    }
+
+    tr.appendChild(tdName);
+    tr.appendChild(createCell(node.ip));
+    tr.appendChild(createCell(node.model));
+    tr.appendChild(createCell(node.location));
+
+    document.querySelector("#switch-table tbody").appendChild(tr);
+
+    if (node.children) {
+      node.children.forEach(child => createRow(child, level + 1, id));
+    }
+  }
+
+  function createCell(content) {
+    const td = document.createElement("td");
+    td.textContent = content || "";
+    return td;
+  }
+
+  function renderTree(data) {
+    data.forEach(node => createRow(node, 0));
+  }
+
+  function setupToggleHandlers() {
+    document.querySelectorAll(".tree-toggle").forEach(toggle => {
+      toggle.addEventListener("click", function () {
+        const targetId = this.dataset.target;
+        const expanded = this.textContent.startsWith("▼");
+        this.textContent = (expanded ? "▶ " : "▼ ") + this.textContent.slice(2);
+
+        toggleChildren(targetId, !expanded);
+      });
+    });
+  }
+
+  function toggleChildren(parentId, show) {
+    const rows = document.querySelectorAll(`tr[data-parent="${parentId}"]`);
+    rows.forEach(row => {
+      row.style.display = show ? "table-row" : "none";
+      if (!show) {
+        const subId = row.dataset.id;
+        toggleChildren(subId, false);
+        const toggle = row.querySelector(".tree-toggle");
+        if (toggle) toggle.textContent = "▶ " + toggle.textContent.slice(2);
+      }
+    });
+  }
+
+  // 🚀 Initialize the table
+  renderTree(treeData);
+  setupToggleHandlers();
+</script>
+
+</body>
+</html>

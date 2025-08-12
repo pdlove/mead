@@ -1,0 +1,5 @@
+{
+    "stackName": "datatables",
+    "description": "Datatables.net-based table. Includes helper to replate uiTable.",
+    "configuration": {}
+  }

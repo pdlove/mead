@@ -1,0 +1,9 @@
+{
+    "packageName": "full-config",
+    "requiredPackages": ["system.uiTable"],
+    "cssFileList": [],
+    "templateFileList": {},
+    "htmlFileList": ["full-config.html"],
+    "jsFileList": ["full-config.js"],
+    "startupClass": "MEADConfig"
+}

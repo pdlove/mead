@@ -1,0 +1,9 @@
+{
+    "stackName": "meadCore",
+    "description": "These are the core components of the Mead stack.",
+    "configuration": {},
+  "modelsToSeed": [ "lookup", "location", "vlan", "network" ],
+  "menuItems": [
+      { "name": "mead-config", "displayText": "MEAD Configuration", "menuPath": "Settings", "defaultGroup": "admin", "clientPackage": "meadcore.full-config", "clientPackageParameters": { } }      
+      ]
+  }
