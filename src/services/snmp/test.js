@@ -1,7 +1,7 @@
 const { Op } = require('sequelize');
 
 const { hotspringGlobal, hotspringStack, hotspringData }  = require('hotspring');
-const snmp = require('../snmp/original');
+const snmp = require('./snmp/original');
 const path = require('path');
 
 

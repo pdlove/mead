@@ -1,8 +1,0 @@
-{
-    "stackName": "syslog",
-    "description": "Everything associated with Syslog Collection and parsing.",
-    "configuration": {},
-    "menuItems": [
-      { "name": "syslog-dashboard", "displayText": "Syslog Dashboard", "menuPath": "Dashboards", "defaultGroup": "admin", "clientPackage": "syslog.log-dashboard", "clientPackageParameters": { } }      
-      ]
-  }

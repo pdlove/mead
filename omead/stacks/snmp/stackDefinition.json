@@ -1,5 +1,0 @@
-{
-    "stackName": "snmp",
-    "description": "Process of walking the SNMP tree and breaking down specific MIBs into objects.",
-    "configuration": {}
-  }

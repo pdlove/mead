@@ -1,5 +1,0 @@
-{
-    "stackName": "ansible",
-    "description": "Parses and Executes Ansible Playbooks. Also provices an IDE to edit Ansible Roles and Playbooks.",
-    "configuration": {}
-  }

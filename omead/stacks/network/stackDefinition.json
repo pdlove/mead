@@ -1,5 +1,0 @@
-{
-    "stackName": "network",
-    "description": "This will contain all objects needed to keep track of the computer network's information such as VLAN, IP Addresses, Devices, etc. This will also apply to storage networks and can be used for any network that includes some form of address. Zigbee, Canbus, I2c are unique ideas that come to mind.",
-    "configuration": {}
-  }

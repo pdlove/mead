@@ -1,5 +1,5 @@
-import { CarpenterModel, DataTypes } from "../../src/carpenter/CarpenterModel.js";
-import CarpenterModelRelationship from "../../src/carpenter/CarpenterModelRelationship.js";
+import { CarpenterModel, DataTypes } from "../../carpenter/CarpenterModel.js";
+import CarpenterModelRelationship from "../../carpenter/CarpenterModelRelationship.js";
 
 import { DataTypes } from "sequelize";
 import { CarpenterModel, CarpenterModelRelationship } from "./CarpenterModelBase.js";
